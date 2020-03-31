@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Audio Speed Up</string>
+    <string name="speed_1_0x">Speed: 2.0x</string>
+    <string name="testButton">Test</string>
+    <string name="helpButton">Help</string>
+    <string name="button">Button</string>
+    <string name="play_pause">Play/Pause</string>
+    <string name="restart">Restart</string>
+</resources>
