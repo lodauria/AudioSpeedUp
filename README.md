@@ -25,4 +25,5 @@ Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/b
 License
 ----
 MIT
+
 _See [here](https://github.com/bonsky97/AudioSpeedUp/blob/master/LICENSE) for details._
