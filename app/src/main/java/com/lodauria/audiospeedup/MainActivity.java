@@ -1,3 +1,10 @@
+/*
+AudioSpeedUp v.1.0 - 2020/04/01
+Created by Lorenzo D'Auria. Be gentle, it's just a hobby for me.
+
+The same main activity will be used both when the app is opened from launcher or from sharing.
+ */
+
 package com.lodauria.audiospeedup;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,12 +55,14 @@ public class MainActivity extends AppCompatActivity {
     private Thread mp_updater;
 
     // GET SPEED FACTOR ----------------------------------------------------------------------------
+    // In the shared preferences is stored the speed factor to use
     private void getFactor(){
         SharedPreferences save= getSharedPreferences("factor", 0);
         factor = save.getFloat("factor", (float) 2.0);
     }
 
     // SAVE NEW SPEED FACTOR -----------------------------------------------------------------------
+    // The speed factor has to be updated when the user changes speed
     private void saveFactor(){
         factor = (float) (speed.getProgress()/4.0 + 0.5);
         SharedPreferences save = getSharedPreferences("factor", 0);
@@ -63,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // COMPLETION LISTENER OF THE MEDIA PLAYER -----------------------------------------------------
+    // Operations to be done for a good UI
+    // Made as an external function because used in different parts of the code
     private void set_mp_listener(final boolean from_sharing){
         mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -86,12 +97,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // SETUP ACTIVITY FOR SHARING OPTION -----------------------------------------------------------
+    // On create only one setup will be used, here is the one if project is started from sharing
     private boolean setup_for_sharing(){
         // Check if media player definition was successful
         if (mp == null){
             // This means that the file is not supported
+            // TODO: On older Android version opus are not supported, can be resolved in some way?
             Toast.makeText(this, "Audio format not supported!", Toast.LENGTH_SHORT).show();
             finishAndRemoveTask();
+            // Return true to handle the error message and stop the execution
             return true;
         }
         // Everything fine, the bottom buttons are unnecessary
@@ -101,7 +115,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // SETUP ACTIVITY IF FROM LAUNCHER -------------------------------------------------------------
+    // On create the media player will use the test audio file
     private void setup_normal(){
+        // Necessary initializations
         mp = MediaPlayer.create(this, R.raw.test);
         player.setEnabled(false);
         restart_b.setEnabled(false);
@@ -118,13 +134,14 @@ public class MainActivity extends AppCompatActivity {
                     AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
                     if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC)==0)
                         Toast.makeText(getApplicationContext(), "Turn the volume up", Toast.LENGTH_SHORT).show();
+                    // Setup the player
                     mp_updater.start();
                     player.setEnabled(true);
                     restart_b.setEnabled(true);
                     stop_b.setEnabled(true);
                     play_b.setEnabled(true);
                 }
-                // Easter egg after 10 tap
+                // Easter egg after 10 tap, the audio file will change
                 if (flag==10) {
                     mp.stop();
                     mp = MediaPlayer.create(getApplicationContext(), R.raw.easteregg);
@@ -133,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                     mp.setVolume(1.0f, 1.0f);
                     player.setMax(mp.getDuration()/100);
                 }
+                // Play the audio
                 mp.seekTo(0);
                 mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
                 play_b.setImageResource(R.drawable.pause);
@@ -143,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         help.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Simple popup tutorial on how to use the app
                 AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
                 alertDialog.setTitle("How to use:");
                 alertDialog.setMessage("Select a file to play by using the sharing option of apps like " +
@@ -203,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
         label.setText( "Speed: " + factor + "x");
 
         // SPEED BAR LISTENER ----------------------------------------------------------------------
-        // Listener for the speed bar (the factor saved and the speed have to change)
+        // Listener for the speed bar (save the speed factor and change media player speed)
         speed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -262,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
             notification = new NotificationCompat.Builder(this, "channel1");
         }
 
-        // First notification content declaration
+        // Initial notification content declaration
         notification.setSmallIcon(R.drawable.my_notify)
                 .setContentTitle("Reproducing audio...")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -308,7 +327,8 @@ public class MainActivity extends AppCompatActivity {
                             // Slow down the looping time (so we change the refresh rate of the timeline)
                             SystemClock.sleep(250);
                         } catch (Exception e){
-                            // If an exception has occurred means that mp has been deleted and we stop
+                            // If an exception has occurred means that mp has been deleted
+                            // So the thread is stopped
                             return;
                         }
                     }
@@ -319,13 +339,15 @@ public class MainActivity extends AppCompatActivity {
         // THREAD FOR HANDLING NOTIFICATION BUTTONS ------------------------------------------------
         // A really bad solution... The idea would be handling buttons action inside the specific
         // classes, but they are static and it's a mess
+        // The statics class that are called after pressing notifications buttons change the
+        // public global variables mp_play and mp_stop, and this thread catches their changes
         // TODO: can be solved without changing everything?
         Thread mp_handler = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (mp != null) {
+                    // If play/pause button has been pressed recently
                     if (!mp_play) {
-                        // Play/pause button has been pressed recently
                         mp_play = true;
                         try {
                             if (mp.isPlaying()) {
@@ -336,13 +358,15 @@ public class MainActivity extends AppCompatActivity {
                                 play_b.setImageResource(R.drawable.pause);
                             }
                         } catch (Exception e) {
+                            // For some reason it often throws exceptions, but not the one we are interested in
                             if (mp == null) return;
                         }
                     }
+                    // If stop button has been pressed recently
                     if (!mp_stop) {
-                        // Stop button has been pressed recently
                         mp_stop = true;
                         try {
+                            // Same of the stop button
                             if (from_sharing && !hasWindowFocus()) {
                                 mp.release();
                                 mp = null;
@@ -357,12 +381,15 @@ public class MainActivity extends AppCompatActivity {
                                 play_b.setImageResource(R.drawable.play);
                             }
                         } catch (Exception e) {
+                            // Same as above
                             if (mp == null) return;
                         }
                     }
                 }
             }
         });
+
+        // Start the thread
         mp_handler.start();
 
         // RESTART BUTTON --------------------------------------------------------------------------
@@ -416,15 +443,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // MEDIA PLAYER COMPLETION LISTENER --------------------------------------------------------
+        // Setup the listener as declared in the dedicated external function
         set_mp_listener(from_sharing);
 
         // PLAYER TIMELINE -------------------------------------------------------------------------
+        // Handle movements of the timeline
         player.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             boolean wasPlaying;
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Move media player cursor
+                // If user moves media player cursor
                 if (fromUser) mp.seekTo(progress*100);
             }
 
@@ -439,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                // Start audio when releasing
+                // Start audio when releasing (if the audio was playing)
                 if (wasPlaying) {
                     mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
                     play_b.setImageResource(R.drawable.pause);
@@ -447,11 +477,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Special behaviour if app is started from sharing (audio has to start autonomously)
         if (from_sharing) {
-            // Check if audio is mute
+            // Check if audio is mute and show toast reminder
             AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC)==0)
                 Toast.makeText(this, "Turn the volume up", Toast.LENGTH_SHORT).show();
+            // Start reproduction
             mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
             mp_updater.start();
             play_b.setImageResource(R.drawable.pause);
@@ -460,35 +492,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // NEW INTENT RECEIVED -------------------------------------------------------------------------
+    // If the app has been restarted before having been closed (from launcher or from another file)
     @Override
     protected void onNewIntent(Intent newIntent) {
         super.onNewIntent(newIntent);
-        // Check if the new intent is from user
+        // Check if the new intent is from user, otherwise ignore
         if (Objects.equals(newIntent.getAction(), "android.intent.action.SEND") ||
                 Objects.equals(newIntent.getAction(), "android.intent.action.MAIN")) {
-
+            // Stop player and also all the threads
             if (mp != null) {
                 mp.release();
                 mp = null;
             }
+            // Remove notification
             if (notificationManager != null) notificationManager.cancelAll();
+            // Interrupt previous execution and restart from scratch
             finish();
             startActivity(newIntent);
         }
     }
 
     // ON DESTROY ----------------------------------------------------------------------------------
+    // When closing the app is important to free resources and stop all the threads
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // Remember that mp=null will stop all the thread
         if (mp != null) {
             mp.release();
             mp = null;
         }
+        // Clear notifications
         if (notificationManager != null) notificationManager.cancelAll();
     }
 
     // ON BACK PRESSED -----------------------------------------------------------------------------
+    // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
     @Override
     public void onBackPressed() {
         if (mp != null) {
@@ -498,7 +537,5 @@ public class MainActivity extends AppCompatActivity {
         if (notificationManager != null) notificationManager.cancelAll();
         finishAndRemoveTask();
     }
-
     // END OF MAIN ACTIVITY ------------------------------------------------------------------------
-
 }

@@ -11,6 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup">
+
         <activity android:name=".MainActivity"
             android:label="Audio Speed Up"
             android:screenOrientation="portrait"
@@ -26,8 +27,10 @@
                 <data android:mimeType="audio/*"/>
             </intent-filter>
         </activity>
+
         <receiver android:name=".PlayReceiver"/>
         <receiver android:name=".StopReceiver"/>
+
     </application>
 
 </manifest>
