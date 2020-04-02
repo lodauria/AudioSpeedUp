@@ -21,7 +21,7 @@ Donations are always welcome, you can use this [link](https://paypal.me/AudioSpe
 
 ## Development
 
-Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/AudioSpeedUp/blob/master/CONTRIBUTING.md).
+Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/blob/master/AudioSpeedUp/CONTRIBUTING.md).
 
 ## Todos
 
