@@ -1,5 +1,5 @@
 # AudioSpeedUp 
-### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/raw/master/AudioSpeedUp.apk) v1.1
+### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/raw/master/AudioSpeedUp.apk) v1.1.1
 
 **NOTE: Supported on Andoird 7.1 or newer**
 
@@ -10,6 +10,7 @@ _**For italian users**: This project has been presented also in video on [YouTub
 ## New Features!
 
   - Donate button added!
+  - Italian language added
 
 **You can also:**
   - Control the music player from notification bar
@@ -24,7 +25,9 @@ Donations are always welcome, you can use this [link](https://paypal.me/AudioSpe
 Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/AudioSpeedUp/blob/master/CONTRIBUTING.md).
 
 ## Todos
-
+ 
+ - Add dark theme
+ - Add in-ear audio when proximity sensor detect contact
  - Improve notification buttons efficiency
  - Add support for .opus file also in older Android versions.
 
