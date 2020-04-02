@@ -6,7 +6,7 @@
     <string name="play_pause">Play/Pausa</string>
     <string name="restart">Riavvia</string>
     <string name="donate">Dona</string>
-    <string name="up_volume">Alza il volumep</string>
+    <string name="up_volume">Alza il volume</string>
     <string name="speed">Velocità:  %.2fx</string>
     <string name="title_dialog">Come si usa:</string>
     <string name="desc_dialog">Seleziona un file da riprodurre usando l\'opzione condivisione dell\'app WhatsApp.\n\nATTENZIONE: Alcuni formati audio sono supportati solo nelle ultime versioni Androide.</string>
