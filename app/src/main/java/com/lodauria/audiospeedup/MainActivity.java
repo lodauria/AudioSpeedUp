@@ -188,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
         // All element initialization
         test = findViewById(R.id.testButton);
         help = findViewById(R.id.helpButton);
+        Button donate = findViewById(R.id.donateButton);
         play_b = findViewById(R.id.playButton);
         stop_b = findViewById(R.id.stopButton);
         restart_b = findViewById(R.id.restartButton);
@@ -220,6 +221,15 @@ public class MainActivity extends AppCompatActivity {
         mp.setVolume(1.0f, 1.0f);
         speed.setProgress((int) ((factor-0.5)*4.0));
         label.setText( "Speed: " + factor + "x");
+
+        // DONATE BUTTON ---------------------------------------------------------------------------
+        donate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp"));
+                startActivity(browserIntent);
+            }
+        });
 
         // SPEED BAR LISTENER ----------------------------------------------------------------------
         // Listener for the speed bar (save the speed factor and change media player speed)
