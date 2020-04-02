@@ -13,7 +13,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
@@ -77,22 +76,19 @@ public class MainActivity extends AppCompatActivity {
     // Operations to be done for a good UI
     // Made as an external function because used in different parts of the code
     private void set_mp_listener(final boolean from_sharing) {
-        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer media_p) {
-                // Same of the stop button
-                if (from_sharing && !hasWindowFocus()) {
-                    mp.release();
-                    mp = null;
-                    notificationManager.cancelAll();
-                    finishAndRemoveTask();
-                } else {
-                    mp.pause();
-                    notificationManager.cancelAll();
-                    mp.seekTo(0);
-                    player.setProgress(0);
-                    play_b.setImageResource(R.drawable.play);
-                }
+        mp.setOnCompletionListener(media_p -> {
+            // Same of the stop button
+            if (from_sharing && !hasWindowFocus()) {
+                mp.release();
+                mp = null;
+                notificationManager.cancelAll();
+                finishAndRemoveTask();
+            } else {
+                mp.pause();
+                notificationManager.cancelAll();
+                mp.seekTo(0);
+                player.setProgress(0);
+                play_b.setImageResource(R.drawable.play);
             }
         });
     }
@@ -126,54 +122,44 @@ public class MainActivity extends AppCompatActivity {
         play_b.setEnabled(false);
 
         // Define the test button for reproducing audio
-        test.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                flag += 1;
-                if (flag == 1) {
-                    // Check if audio is mute
-                    AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                    if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
-                        Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
-                    // Setup the player
-                    mp_updater.start();
-                    player.setEnabled(true);
-                    restart_b.setEnabled(true);
-                    stop_b.setEnabled(true);
-                    play_b.setEnabled(true);
-                }
-                // Easter egg after 10 tap, the audio file will change
-                if (flag == 10) {
-                    mp.stop();
-                    mp = MediaPlayer.create(getApplicationContext(), R.raw.easteregg);
-                    set_mp_listener(false);
-                    mp.setLooping(false);
-                    mp.setVolume(1.0f, 1.0f);
-                    player.setMax(mp.getDuration() / 100);
-                }
-                // Play the audio
-                mp.seekTo(0);
-                mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
-                play_b.setImageResource(R.drawable.pause);
+        test.setOnClickListener(v -> {
+            flag += 1;
+            if (flag == 1) {
+                // Check if audio is mute
+                AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
+                    Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
+                // Setup the player
+                mp_updater.start();
+                player.setEnabled(true);
+                restart_b.setEnabled(true);
+                stop_b.setEnabled(true);
+                play_b.setEnabled(true);
             }
+            // Easter egg after 10 tap, the audio file will change
+            if (flag == 10) {
+                mp.stop();
+                mp = MediaPlayer.create(getApplicationContext(), R.raw.easteregg);
+                set_mp_listener(false);
+                mp.setLooping(false);
+                mp.setVolume(1.0f, 1.0f);
+                player.setMax(mp.getDuration() / 100);
+            }
+            // Play the audio
+            mp.seekTo(0);
+            mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
+            play_b.setImageResource(R.drawable.pause);
         });
 
         // Define the help button with the warning message
-        help.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Simple popup tutorial on how to use the app
-                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                alertDialog.setTitle(getString(R.string.title_dialog));
-                alertDialog.setMessage(getString(R.string.desc_dialog));
-                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                alertDialog.show();
-            }
+        help.setOnClickListener(v -> {
+            // Simple popup tutorial on how to use the app
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            alertDialog.setTitle(getString(R.string.title_dialog));
+            alertDialog.setMessage(getString(R.string.desc_dialog));
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
+                    (dialog, which) -> dialog.dismiss());
+            alertDialog.show();
         });
     }
 
@@ -300,42 +286,39 @@ public class MainActivity extends AppCompatActivity {
                 .addAction(R.drawable.ic_launcher_background, getString(R.string.stop), stopPendingIntent);
 
         // THREAD FOR UPDATING MEDIA PLAYER --------------------------------------------------------
-        mp_updater = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // Setup player timeline
-                if (mp != null) player.setMax(mp.getDuration() / 100);
-                // If the audio file duration can't be obtained set indeterminate progressbar
-                if (mp != null && mp.getDuration() == -1) {
-                    notification.setProgress(0, 0, true);
-                    notificationManager.notify(1, notification.build());
-                    player.setEnabled(false);
-                } else {
-                    // Thread start cycling in this loop and exit when media player is deleted
-                    while (mp != null) {
-                        // If inside the loop mp became null some method throw exceptions
-                        try {
-                            // Update the notification content
-                            notification.setProgress(mp.getDuration() / 100,
-                                    mp.getCurrentPosition() / 100, false);
-                            @SuppressLint("DefaultLocale") String tt = String.format("%02d:%02d",
-                                    TimeUnit.MILLISECONDS.toMinutes(mp.getCurrentPosition()),
-                                    TimeUnit.MILLISECONDS.toSeconds(mp.getCurrentPosition()) -
-                                            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(
-                                                    mp.getCurrentPosition())));
-                            notification.setContentText(tt);
-                            if (!player.isPressed() && mp.isPlaying()) {
-                                // Change the player and the notification timeline only during reproduction
-                                player.setProgress(mp.getCurrentPosition() / 100);
-                                notificationManager.notify(1, notification.build());
-                            }
-                            // Slow down the looping time (so we change the refresh rate of the timeline)
-                            SystemClock.sleep(250);
-                        } catch (Exception e) {
-                            // If an exception has occurred means that mp has been deleted
-                            // So the thread is stopped
-                            return;
+        mp_updater = new Thread(() -> {
+            // Setup player timeline
+            if (mp != null) player.setMax(mp.getDuration() / 100);
+            // If the audio file duration can't be obtained set indeterminate progressbar
+            if (mp != null && mp.getDuration() == -1) {
+                notification.setProgress(0, 0, true);
+                notificationManager.notify(1, notification.build());
+                player.setEnabled(false);
+            } else {
+                // Thread start cycling in this loop and exit when media player is deleted
+                while (mp != null) {
+                    // If inside the loop mp became null some method throw exceptions
+                    try {
+                        // Update the notification content
+                        notification.setProgress(mp.getDuration() / 100,
+                                mp.getCurrentPosition() / 100, false);
+                        @SuppressLint("DefaultLocale") String tt = String.format("%02d:%02d",
+                                TimeUnit.MILLISECONDS.toMinutes(mp.getCurrentPosition()),
+                                TimeUnit.MILLISECONDS.toSeconds(mp.getCurrentPosition()) -
+                                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(
+                                                mp.getCurrentPosition())));
+                        notification.setContentText(tt);
+                        if (!player.isPressed() && mp.isPlaying()) {
+                            // Change the player and the notification timeline only during reproduction
+                            player.setProgress(mp.getCurrentPosition() / 100);
+                            notificationManager.notify(1, notification.build());
                         }
+                        // Slow down the looping time (so we change the refresh rate of the timeline)
+                        SystemClock.sleep(250);
+                    } catch (Exception e) {
+                        // If an exception has occurred means that mp has been deleted
+                        // So the thread is stopped
+                        return;
                     }
                 }
             }
