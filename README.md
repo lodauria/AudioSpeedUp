@@ -20,9 +20,9 @@ _**For italian users**: This project has been presented also in video on [YouTub
 
 Donations are always welcome, you can use this [link](https://paypal.me/AudioSpeedUp). Thank you in advise!
 
-## Development
+## Contributions
 
-Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/AudioSpeedUp/blob/master/CONTRIBUTING.md).
+Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/blob/master/AudioSpeedUp/CONTRIBUTING.md).
 
 ## Todos
  
