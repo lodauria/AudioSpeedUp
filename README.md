@@ -12,6 +12,10 @@ _**For italian users**: This project has been presented also in video on [YouTub
 **You can also:**
   - Control the music player from notification bar
   - Switch applications during reproduction
+  
+## Donations
+
+Donations are always welcome, you can use this [link](https://paypal.me/AudioSpeedUp). Thank you in advise!
 
 ## Development
 
