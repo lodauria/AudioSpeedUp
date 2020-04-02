@@ -1,5 +1,5 @@
 # AudioSpeedUp 
-### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/raw/master/AudioSpeedUp.apk) v1.1.1
+### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/releases/download/v1.1.1/AudioSpeedUp.apk) v1.1.1
 
 **NOTE: Supported on Andoird 7.1 or newer**
 
