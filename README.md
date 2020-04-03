@@ -11,7 +11,6 @@ _**For italian users**: This project has been presented also in video on [YouTub
 ## New Features!
 
   - New user interface
-  - Add dark theme
 
 **You can also:**
   - Donate using the donate button
@@ -27,12 +26,13 @@ Donations are always welcome, you can use this [link](https://paypal.me/AudioSpe
 
 A big thank you to:
 
- - [@Fast0n](https://github.com/fast0n)
+ - @Fast0n
 
 Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/blob/master/AudioSpeedUp/CONTRIBUTING.md).
 
 ## Todos
  
+ - Add dark theme
  - Add in-ear audio when proximity sensor detect contact
  - Improve notification buttons efficiency
  - Add support for .opus file also in older Android versions.
