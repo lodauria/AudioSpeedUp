@@ -16,22 +16,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-
+import android.os.Handler;
 import android.os.SystemClock;
 import android.view.Menu;
 import android.view.View;
@@ -42,6 +32,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +45,11 @@ public class MainActivity extends AppCompatActivity {
 
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
+    Database mDatabase;
+    Cursor data;
+    PopupMenu popup;
+    Menu menuOpts;
+    AlertDialog alertDialog = null;
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
     private Button test, help, more, donate;
     private TextView label;
@@ -60,10 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
     private Thread mp_updater;
-    Database mDatabase;
-    Cursor data;
-    PopupMenu popup;
-    Menu menuOpts;
 
     // GET SPEED FACTOR ----------------------------------------------------------------------------
     // In the shared preferences is stored the speed factor to use
@@ -164,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
         // Define the help button with the warning message
         help.setOnClickListener(v -> {
             // Simple popup tutorial on how to use the app
-            AlertDialog alertDialog = null;
+
 
             while (data.moveToNext())
                 if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
@@ -185,8 +182,14 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         mDatabase = new Database(this);
         data = mDatabase.getData();
+
+        if (data.getCount() == 0)
+            AddData("themevalue", "0");
+
+
         while (data.moveToNext())
             if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
                 setTheme(R.style.AppTheme);
@@ -213,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
         popup = new PopupMenu(MainActivity.this, more);
         popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
         menuOpts = popup.getMenu();
-        
+
         // initial info extras and database
         mDatabase = new Database(this);
         data = mDatabase.getData();
@@ -244,10 +247,8 @@ public class MainActivity extends AppCompatActivity {
         label.setText(String.format(getString(R.string.speed), factor));
 
         // DONATE BUTTON ---------------------------------------------------------------------------
-        donate.setOnClickListener(v -> {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp")));
-        });
-        
+        donate.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp"))));
+
         // MORE BUTTON ---------------------------------------------------------------------------
         more.setOnClickListener(view -> {
             while (data.moveToNext())
@@ -512,33 +513,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showPopup() {
+        Handler handler = new Handler();
         popup.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.action_theme:
-                    mDatabase = new Database(this);
-                    data = mDatabase.getData();
-                    if (data.getCount() == 0) {
-                        AddData("themevalue", "1");
-                        startActivity(new Intent(this, MainActivity.class));
-                    } else
-                        while (data.moveToNext()) {
-                            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
-                                mDatabase.deleteName("themevalue", "0");
-                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                                AddData("themevalue", "1");
-                            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
-                                AddData("themevalue", "0");
-                                mDatabase.deleteName("themevalue", "1");
-                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                            }
-                            startActivity(new Intent(this, MainActivity.class));
+            if (item.getItemId() == R.id.action_theme) {
+                mDatabase = new Database(this);
+                data = mDatabase.getData();
+                if (data.getCount() == 0) {
+                    AddData("themevalue", "1");
+                } else
+                    while (data.moveToNext()) {
+                        if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
+                            mDatabase.deleteName("themevalue", "0");
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                            AddData("themevalue", "1");
+                        } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
+                            mDatabase.deleteName("themevalue", "1");
+                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            AddData("themevalue", "0");
                         }
-                    break;
+
+                    }
+                this.onRestart();
+                startActivity(new Intent(this, MainActivity.class));
             }
             return true;
+
+
         });
         popup.show();
-
     }
 
     // NEW INTENT RECEIVED -------------------------------------------------------------------------
@@ -567,6 +569,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        popup.dismiss();
         // Remember that mp=null will stop all the thread
         if (mp != null) {
             mp.release();
