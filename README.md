@@ -31,6 +31,7 @@ Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/b
  - Add in-ear audio when proximity sensor detect contact
  - Improve notification buttons efficiency
  - Add support for .opus file also in older Android versions.
+ - Auto-update application
 
 License
 ----

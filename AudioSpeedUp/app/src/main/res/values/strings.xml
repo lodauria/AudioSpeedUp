@@ -12,4 +12,6 @@
     <string name="title_dialog">How to use:</string>
     <string name="desc_dialog">Select a file to play by using the sharing option of apps like WhatsApp.\n\nWARNING: Some audio formats are supported only on latest Android versions.</string>
     <string name="notification">Reproducing audio…</string>
+    <string name="titlespeed">Select speed</string>
+    <string name="titletest">Audio sample</string>
 </resources>
