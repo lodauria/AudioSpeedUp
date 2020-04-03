@@ -3,7 +3,7 @@ AudioSpeedUp v.1.0 - 2020/04/01
 Created by Lorenzo D'Auria. Be gentle, it's just a hobby for me.
 
 The same main activity will be used both when the app is opened from launcher or from sharing.
- */
+*/
 
 package com.lodauria.audiospeedup;
 
@@ -15,22 +15,32 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import android.os.SystemClock;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -40,20 +50,20 @@ public class MainActivity extends AppCompatActivity {
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
-    private Button test;
-    private Button help;
+    private Button test, help, more, donate;
     private TextView label;
-    private SeekBar speed;
-    private SeekBar player;
+    private SeekBar speed, player;
     private MediaPlayer mp;
-    private ImageButton play_b;
-    private ImageButton restart_b;
-    private ImageButton stop_b;
+    private ImageButton play_b, restart_b, stop_b;
     private int flag = 0;
     private float factor;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
     private Thread mp_updater;
+    Database mDatabase;
+    Cursor data;
+    PopupMenu popup;
+    Menu menuOpts;
 
     // GET SPEED FACTOR ----------------------------------------------------------------------------
     // In the shared preferences is stored the speed factor to use
@@ -154,7 +164,15 @@ public class MainActivity extends AppCompatActivity {
         // Define the help button with the warning message
         help.setOnClickListener(v -> {
             // Simple popup tutorial on how to use the app
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            AlertDialog alertDialog = null;
+
+            while (data.moveToNext())
+                if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
+                    alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialog).create();
+                else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                    alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialogDark).create();
+
+
             alertDialog.setTitle(getString(R.string.title_dialog));
             alertDialog.setMessage(getString(R.string.desc_dialog));
             alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, getString(android.R.string.ok),
@@ -167,20 +185,38 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Standard setup
+        mDatabase = new Database(this);
+        data = mDatabase.getData();
+        while (data.moveToNext())
+            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
+                setTheme(R.style.AppTheme);
+            else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                setTheme(R.style.DarkTheme);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
 
         // All element initialization
+        more = toolbar.findViewById(R.id.more);
         test = findViewById(R.id.testButton);
         help = findViewById(R.id.helpButton);
-        Button donate = findViewById(R.id.donateButton);
+        donate = findViewById(R.id.donateButton);
         play_b = findViewById(R.id.playButton);
         stop_b = findViewById(R.id.stopButton);
         restart_b = findViewById(R.id.restartButton);
         label = findViewById(R.id.SpeedVal);
         speed = findViewById(R.id.speedBar);
         player = findViewById(R.id.seekBar);
+        popup = new PopupMenu(MainActivity.this, more);
+        popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
+        menuOpts = popup.getMenu();
+        
+        // initial info extras and database
+        mDatabase = new Database(this);
+        data = mDatabase.getData();
 
         // FIRST SETUP -----------------------------------------------------------------------------
         // Obtain the speed factor
@@ -211,6 +247,17 @@ public class MainActivity extends AppCompatActivity {
         donate.setOnClickListener(v -> {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp")));
         });
+        
+        // MORE BUTTON ---------------------------------------------------------------------------
+        more.setOnClickListener(view -> {
+            while (data.moveToNext())
+                if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
+                    menuOpts.getItem(0).setTitle(getString(R.string.action_theme));
+                else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                    menuOpts.getItem(0).setTitle(getString(R.string.action_theme_dark));
+            showPopup();
+        });
+
 
         // SPEED BAR LISTENER ----------------------------------------------------------------------
         // Listener for the speed bar (save the speed factor and change media player speed)
@@ -464,6 +511,36 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showPopup() {
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.action_theme:
+                    mDatabase = new Database(this);
+                    data = mDatabase.getData();
+                    if (data.getCount() == 0) {
+                        AddData("themevalue", "1");
+                        startActivity(new Intent(this, MainActivity.class));
+                    } else
+                        while (data.moveToNext()) {
+                            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
+                                mDatabase.deleteName("themevalue", "0");
+                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                                AddData("themevalue", "1");
+                            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
+                                AddData("themevalue", "0");
+                                mDatabase.deleteName("themevalue", "1");
+                                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            }
+                            startActivity(new Intent(this, MainActivity.class));
+                        }
+                    break;
+            }
+            return true;
+        });
+        popup.show();
+
+    }
+
     // NEW INTENT RECEIVED -------------------------------------------------------------------------
     // If the app has been restarted before having been closed (from launcher or from another file)
     @Override
@@ -499,6 +576,10 @@ public class MainActivity extends AppCompatActivity {
         if (notificationManager != null) notificationManager.cancelAll();
     }
 
+    public void AddData(String field, String record) {
+        mDatabase.addData(field, record);
+    }
+
     // ON BACK PRESSED -----------------------------------------------------------------------------
     // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
     @Override
@@ -510,5 +591,5 @@ public class MainActivity extends AppCompatActivity {
         if (notificationManager != null) notificationManager.cancelAll();
         finishAndRemoveTask();
     }
-    // END OF MAIN ACTIVITY ------------------------------------------------------------------------
+// END OF MAIN ACTIVITY ------------------------------------------------------------------------
 }

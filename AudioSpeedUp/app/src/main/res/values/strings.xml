@@ -14,4 +14,6 @@
     <string name="notification">Reproducing audio…</string>
     <string name="titlespeed">Select speed</string>
     <string name="titletest">Audio sample</string>
+    <string name="action_theme">Enable dark mode</string>
+    <string name="action_theme_dark">Disable dark mode</string>
 </resources>

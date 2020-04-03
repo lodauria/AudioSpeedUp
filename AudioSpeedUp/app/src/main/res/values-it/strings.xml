@@ -12,4 +12,6 @@
     <string name="notification">In riproduzione…</string>
     <string name="titlespeed">Scegli la velocità</string>
     <string name="titletest">Audio di prova</string>
+    <string name="action_theme">Attiva dark mode</string>
+    <string name="action_theme_dark">Disattiva dark mode</string>
 </resources>

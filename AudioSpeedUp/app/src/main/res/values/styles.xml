@@ -1,11 +1,70 @@
 <resources>
-
     <!-- Base application theme. -->
+    <!-- Light/Day Mode Theme -->
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">#014E17</item>
+        <item name="colorPrimaryDark">#014E17</item>
+        <item name="colorAccent">#007C0D</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@style/WindowsAnimationTransition</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:itemBackground">#fafafa</item>
+
+        <item name="colorBackground">#f2f2f2</item>
+        <item name="colorButton">#488E48</item>
+        <item name="colorText">#ffffff</item>
+        <item name="colorTextView">#000000</item>
+        <item name="colorCard">#fafafa</item>
     </style>
 
+    <!-- Night/Dark Mode Theme -->
+    <style name="DarkTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
+        <item name="colorPrimary">#014E17</item>
+        <item name="colorPrimaryDark">#014E17</item>
+        <item name="colorAccent">#007C0D</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@style/WindowsAnimationTransition</item>
+        <item name="android:textColor">#e1e1e1</item>
+        <item name="android:itemBackground">#1e1e1e</item>
+
+        <item name="colorBackground">#121212</item>
+        <item name="colorButton">#488E48</item>
+        <item name="colorText">#e1e1e1</item>
+        <item name="colorTextView">#e1e1e1</item>
+        <item name="colorCard">#1e1e1e</item>
+    </style>
+
+
+    <style name="AlertDialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="android:backgroundTint">#f2f2f2</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:textColorPrimary">#000000</item>
+        <item name="materialButtonStyle">@style/Alert.Button.Neutral</item>
+    </style>
+
+    <style name="AlertDialogDark" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="android:backgroundTint">#1e1e1e</item>
+        <item name="android:textColor">#e1e1e1</item>
+        <item name="android:textColorPrimary">#e1e1e1</item>
+        <item name="materialButtonStyle">@style/Alert.Button.Neutral.Dark</item>
+    </style>
+
+    <style name="WindowsAnimationTransition">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="DarkTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="DarkTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Alert.Button.Neutral.Dark" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">#e1e1e1</item>
+
+    </style>
+
+    <style name="Alert.Button.Neutral" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:textColor">#000000</item>
+    </style>
 </resources>
