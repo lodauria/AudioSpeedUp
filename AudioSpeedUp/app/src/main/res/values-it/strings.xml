@@ -10,4 +10,6 @@
     <string name="title_dialog">Come si usa:</string>
     <string name="desc_dialog">Seleziona un file da riprodurre usando l\'opzione condividi da app come WhatsApp.\n\nATTENZIONE: Alcuni formati audio sono supportati solo nelle ultime versioni Android.</string>
     <string name="notification">In riproduzione…</string>
+    <string name="titlespeed">Scegli la velocità</string>
+    <string name="titletest">Audio di prova</string>
 </resources>
