@@ -10,10 +10,11 @@ _**For italian users**: This project has been presented also in video on [YouTub
 
 ## New Features!
 
-  - Donate button added!
-  - Italian language added
+  - New user interface
 
 **You can also:**
+  - Donate using the donate button
+  - Set italian language
   - Control the music player from notification bar
   - Switch applications during reproduction
   
@@ -22,6 +23,10 @@ _**For italian users**: This project has been presented also in video on [YouTub
 Donations are always welcome, you can use this [link](https://paypal.me/AudioSpeedUp). Thank you in advise!
 
 ## Contributions
+
+A big thank you to:
+
+ - @Fast0n
 
 Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/blob/master/AudioSpeedUp/CONTRIBUTING.md).
 
