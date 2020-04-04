@@ -6,6 +6,5 @@
         <attr name="colorText" format="color" />
         <attr name="colorTextView" format="color" />
         <attr name="colorCard" format="color" />
-
     </declare-styleable>
 </resources>

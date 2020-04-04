@@ -15,13 +15,19 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -40,7 +46,12 @@ import androidx.core.app.NotificationManagerCompat;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+
+
+    private SensorManager mSensorManager;
+    private Sensor mProximity;
+    private static final int SENSOR_SENSITIVITY = 4;
 
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
@@ -107,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (mp == null) {
             // This means that the file is not supported
             // TODO: On older Android version opus are not supported, can be resolved in some way?
-            Toast.makeText(this, "Audio format not supported!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
             finishAndRemoveTask();
             // Return true to handle the error message and stop the execution
             return true;
@@ -161,14 +172,21 @@ public class MainActivity extends AppCompatActivity {
         // Define the help button with the warning message
         help.setOnClickListener(v -> {
             // Simple popup tutorial on how to use the app
+            // Check UI Mode and change theme
+            int nightModeFlags =
+                    this.getResources().getConfiguration().uiMode &
+                            Configuration.UI_MODE_NIGHT_MASK;
+            switch (nightModeFlags) {
+                case Configuration.UI_MODE_NIGHT_YES:
 
-
-            while (data.moveToNext())
-                if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
-                    alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialog).create();
-                else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                case Configuration.UI_MODE_NIGHT_UNDEFINED:
                     alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialogDark).create();
+                    break;
 
+                case Configuration.UI_MODE_NIGHT_NO:
+                    alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialog).create();
+                    break;
+            }
 
             alertDialog.setTitle(getString(R.string.title_dialog));
             alertDialog.setMessage(getString(R.string.desc_dialog));
@@ -193,10 +211,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Set saved theme
         while (data.moveToNext())
-            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
+            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
                 setTheme(R.style.AppTheme);
-            else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
                 setTheme(R.style.DarkTheme);
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }
 
         setContentView(R.layout.activity_main);
 
@@ -216,13 +237,10 @@ public class MainActivity extends AppCompatActivity {
         popup = new PopupMenu(MainActivity.this, more);
         popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
         menuOpts = popup.getMenu();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
-        // Initial info extras and database
-        // TODO: probably redundant
-        // Call again the Database constructor is probably not needed and slows down execution
-        // This problem is here and in a lot of other places
-        // Is using the database necessary to save only a boolean?
-        // Probably shared preferences works better
+        // Setup database
         mDatabase = new Database(this);
         data = mDatabase.getData();
 
@@ -519,29 +537,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void showPopup() {
         popup.setOnMenuItemClickListener(item -> {
+            data = mDatabase.getData();
             if (item.getItemId() == R.id.action_theme) {
-                mDatabase = new Database(this);
-                data = mDatabase.getData();
                 if (data.getCount() == 0) {
                     AddData("themevalue", "1");
                 } else
                     while (data.moveToNext()) {
                         if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
                             mDatabase.deleteName("themevalue", "0");
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                            Toast.makeText(this, R.string.toast_change_theme, Toast.LENGTH_SHORT).show();
                             AddData("themevalue", "1");
                         } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
                             mDatabase.deleteName("themevalue", "1");
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                            Toast.makeText(this, R.string.toast_change_theme, Toast.LENGTH_SHORT).show();
                             AddData("themevalue", "0");
                         }
 
                     }
-                // TODO: Change theme without restarting everything
-                // The restart stops the music and all the other processes
-                // This makes the UI uncomfortable
-                this.onRestart();
-                startActivity(new Intent(this, MainActivity.class));
+                popup.dismiss();
             }
             return true;
 
@@ -592,6 +605,21 @@ public class MainActivity extends AppCompatActivity {
 
     // ON BACK PRESSED -----------------------------------------------------------------------------
     // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
+    }
+
+
+
     @Override
     public void onBackPressed() {
         if (mp != null) {
@@ -600,6 +628,27 @@ public class MainActivity extends AppCompatActivity {
         }
         if (notificationManager != null) notificationManager.cancelAll();
         finishAndRemoveTask();
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // TODO: Fix player when change proximity sensor
+        if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            if (event.values[0] >= -SENSOR_SENSITIVITY && event.values[0] <= SENSOR_SENSITIVITY) {
+                Log.e("TODO", "Audio near");
+                // pass audio through the speaker
+                //mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            } else {
+                Log.e("TODO", "Audio far");
+                // pass audio through the earpiece
+                //mp.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+            }
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 // END OF MAIN ACTIVITY ------------------------------------------------------------------------
 }
