@@ -13,11 +13,11 @@ _**For italian users**: This project has been presented also in video on [YouTub
 ## New Features!
 
   - New user interface
-  - Add dark theme
+  - Dark theme added
+  - Added french
 
 **You can also:**
   - Donate using the donate button
-  - Set italian language
   - Control the music player from notification bar
   - Switch applications during reproduction
   
@@ -35,6 +35,7 @@ Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/b
 
 ## Todos
  
+ - [Fix] Theme change restarts the application
  - Add in-ear audio when proximity sensor detect contact
  - Improve notification buttons efficiency
  - Add support for .opus file also in older Android versions.
