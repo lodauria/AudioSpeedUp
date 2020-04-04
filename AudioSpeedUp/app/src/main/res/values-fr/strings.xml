@@ -7,8 +7,8 @@
     <string name="donate">Fait un don</string>
     <string name="up_volume">Augmentez le volume</string>
     <string name="speed">Vitesse:  %.2fx</string>
-    <string name="title_dialog">Comment l'utiliser:</string>
-    <string name="desc_dialog">Sélectionnez un fichier à lire à l'aide de l'option de partage à partir d'applications telles que WhatsApp.\n\nAVERTISSEMENT: certains formats audio ne sont pris en charge que dans les dernières versions d'Android.</string>
+    <string name="title_dialog">Comment l\'utiliser:</string>
+    <string name="desc_dialog">Sélectionnez un fichier à lire à l\'aide de l\'option de partage à partir d\'applications telles que WhatsApp.\n\nAVERTISSEMENT: certains formats audio ne sont pris en charge que dans les dernières versions d\'Android.</string>
     <string name="notification">En cours de lecture…</string>
     <string name="titlespeed">Choisissez votre vitesse</string>
     <string name="titletest">Test audio</string>
