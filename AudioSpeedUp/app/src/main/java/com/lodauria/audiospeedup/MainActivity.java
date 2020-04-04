@@ -21,7 +21,6 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.view.Menu;
 import android.view.View;
@@ -51,7 +50,8 @@ public class MainActivity extends AppCompatActivity {
     Menu menuOpts;
     AlertDialog alertDialog = null;
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
-    private Button test, help, more, donate;
+    private Button test;
+    private Button help;
     private TextView label;
     private SeekBar speed, player;
     private MediaPlayer mp;
@@ -183,30 +183,30 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        super.onCreate(savedInstanceState);
+
+        // Setup database
         mDatabase = new Database(this);
         data = mDatabase.getData();
-
         if (data.getCount() == 0)
             AddData("themevalue", "0");
 
-
+        // Set saved theme
         while (data.moveToNext())
             if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
                 setTheme(R.style.AppTheme);
             else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
                 setTheme(R.style.DarkTheme);
 
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
 
         // All element initialization
-        more = toolbar.findViewById(R.id.more);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        Button more = toolbar.findViewById(R.id.more);
+        Button donate = findViewById(R.id.donateButton);
         test = findViewById(R.id.testButton);
         help = findViewById(R.id.helpButton);
-        donate = findViewById(R.id.donateButton);
         play_b = findViewById(R.id.playButton);
         stop_b = findViewById(R.id.stopButton);
         restart_b = findViewById(R.id.restartButton);
@@ -217,7 +217,12 @@ public class MainActivity extends AppCompatActivity {
         popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
         menuOpts = popup.getMenu();
 
-        // initial info extras and database
+        // Initial info extras and database
+        // TODO: probably redundant
+        // Call again the Database constructor is probably not needed and slows down execution
+        // This problem is here and in a lot of other places
+        // Is using the database necessary to save only a boolean?
+        // Probably shared preferences works better
         mDatabase = new Database(this);
         data = mDatabase.getData();
 
@@ -513,7 +518,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showPopup() {
-        Handler handler = new Handler();
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_theme) {
                 mDatabase = new Database(this);
@@ -533,6 +537,9 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                     }
+                // TODO: Change theme without restarting everything
+                // The restart stops the music and all the other processes
+                // This makes the UI uncomfortable
                 this.onRestart();
                 startActivity(new Intent(this, MainActivity.class));
             }
