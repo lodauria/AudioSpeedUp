@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int count = 0;
     private SensorManager mSensorManager;
     private Sensor mProximity;
-    private AudioManager m_amAudioManager;
+
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
     private Button test;
     private Button help;
