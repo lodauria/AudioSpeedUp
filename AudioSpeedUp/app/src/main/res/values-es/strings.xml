@@ -14,4 +14,6 @@
     <string name="titletest">Prueba de audio</string>
     <string name="action_theme">Activa el modo oscuro</string>
     <string name="action_theme_dark">Desactiva el modo oscuro</string>
+    <string name="audio_not_supported">Formato de audio no compatible!</string>
+    <string name="toast_change_theme">El tema cambiará al reiniciar</string>
 </resources>
