@@ -1,0 +1,17 @@
+<resources>
+    <string name="speed_1_0x">Velocidad: 2.0x</string>
+    <string name="testButton">Prueba</string>
+    <string name="helpButton">Ayuda</string>
+    <string name="play_pause">Reproducir/Pausa</string>
+    <string name="restart">Reanudar</string>
+    <string name="donate">Dona</string>
+    <string name="up_volume">Sube el volumen</string>
+    <string name="speed">Velocidad:  %.2fx</string>
+    <string name="title_dialog">Como usarlo:</string>
+    <string name="desc_dialog">Seleccione un archivo para reproducir usando la opción compartir de aplicaciones como WhatsApp.\N\nADVERTENCIA: Algunos formatos de audio solo son compatibles con las últimas versiones de Android.</string>
+    <string name="notification">Ahora jugando…</string>
+    <string name="titlespeed">Elige tu velocidad</string>
+    <string name="titletest">Prueba de audio</string>
+    <string name="action_theme">Activa el modo oscuro</string>
+    <string name="action_theme_dark">Desactiva el modo oscuro</string>
+</resources>
