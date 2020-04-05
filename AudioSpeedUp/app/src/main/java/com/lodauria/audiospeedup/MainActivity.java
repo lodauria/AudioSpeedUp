@@ -52,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     private static final int SENSOR_SENSITIVITY = 4;
+    private AudioManager m_amAudioManager;
+
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
     Database mDatabase;
@@ -251,6 +253,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
+
         m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         coordinatorLayout = findViewById(R.id.cordinatorLayout);
 
