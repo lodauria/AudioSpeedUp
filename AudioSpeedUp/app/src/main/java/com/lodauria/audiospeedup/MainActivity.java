@@ -27,7 +27,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -35,6 +34,7 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -51,9 +51,6 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
 
-    private static final int SENSOR_SENSITIVITY = 4;
-    private AudioManager m_amAudioManager;
-
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
     Database mDatabase;
@@ -63,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     AlertDialog alertDialog = null;
     CoordinatorLayout coordinatorLayout;
     int count = 0;
+    private AudioManager m_amAudioManager;
     private SensorManager mSensorManager;
     private Sensor mProximity;
 
@@ -648,22 +646,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this);
     }
 
-    // TODO: This seems to be faulty, is the event detected?
-    // This still need fixes
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
-            if (event.values[0] >= -SENSOR_SENSITIVITY && event.values[0] <= SENSOR_SENSITIVITY) {
-                // Audio near
-                Log.e("My_activity", "Audio near");
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
-            } else {
-                // Audio far
-                Log.e("My_Activity", "Audio far");
-                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
-                m_amAudioManager.setSpeakerphoneOn(true);
-            }
+        if (event.values[0] < mProximity.getMaximumRange()) {
+            // Audio near
+            m_amAudioManager.setSpeakerphoneOn(false);
+        } else {
+            // Audio far
+            m_amAudioManager.setSpeakerphoneOn(true);
         }
     }
 
