@@ -27,7 +27,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -35,38 +34,31 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
 import com.google.android.material.snackbar.Snackbar;
-
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
-
-    private static final int SENSOR_SENSITIVITY = 4;
-    private AudioManager m_amAudioManager;
-
+    // GLOBAL VARIABLES ----------------------------------------------------------------------------
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
-    Database mDatabase;
-    Cursor data;
-    PopupMenu popup;
-    Menu menuOpts;
-    AlertDialog alertDialog = null;
-    CoordinatorLayout coordinatorLayout;
-    int count = 0;
+    private Database mDatabase;
+    private Cursor data;
+    private PopupMenu popup;
+    private Menu menuOpts;
+    private AlertDialog alertDialog = null;
+    private CoordinatorLayout coordinatorLayout;
+    private AudioManager m_amAudioManager;
     private SensorManager mSensorManager;
     private Sensor mProximity;
-
-    // GLOBAL VARIABLES ----------------------------------------------------------------------------
     private Button test;
     private Button help;
     private TextView label;
@@ -74,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private MediaPlayer mp;
     private ImageButton play_b, restart_b, stop_b;
     private int flag = 0;
+    private boolean trig = false;
     private float factor;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
@@ -282,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // DONATE BUTTON ---------------------------------------------------------------------------
         donate.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp"))));
 
-        // MORE BUTTON ---------------------------------------------------------------------------
+        // MORE BUTTON -----------------------------------------------------------------------------
         more.setOnClickListener(view -> {
             while (data.moveToNext())
                 if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
@@ -291,7 +284,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     menuOpts.getItem(0).setTitle(getString(R.string.action_theme_dark));
             showPopup();
         });
-
 
         // SPEED BAR LISTENER ----------------------------------------------------------------------
         // Listener for the speed bar (save the speed factor and change media player speed)
@@ -545,9 +537,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    // ADD TO DATABASE -----------------------------------------------------------------------------
+    public void AddData(String field, String record) {
+        mDatabase.addData(field, record);
+    }
+
+    // POPUP MENU ----------------------------------------------------------------------------------
     private void showPopup() {
         popup.setOnMenuItemClickListener(item -> {
-            if (count == 0) {
+            if (!trig) {
                 data = mDatabase.getData();
                 if (item.getItemId() == R.id.action_theme) {
                     if (data.getCount() == 0) {
@@ -568,7 +566,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
                     SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
                     snack.show();
-                    count++;
+                    trig=true;
                 }
                 popup.dismiss();
 
@@ -579,6 +577,38 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         popup.show();
+    }
+
+    // PROXIMITY SENSOR CHANGE ---------------------------------------------------------------------
+    // TODO: This still need fixes
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.values[0] < mProximity.getMaximumRange()) {
+            // Audio near
+            m_amAudioManager.setSpeakerphoneOn(false);
+        } else {
+            // Audio far
+            m_amAudioManager.setSpeakerphoneOn(true);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    // TODO: This two methods below has to be deleted if we want to use proximity sensor also when the app is in background
+    // but first the sensor detection has to work properly
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
     }
 
     // NEW INTENT RECEIVED -------------------------------------------------------------------------
@@ -617,13 +647,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (notificationManager != null) notificationManager.cancelAll();
     }
 
-    public void AddData(String field, String record) {
-        mDatabase.addData(field, record);
-    }
-
     // ON BACK PRESSED -----------------------------------------------------------------------------
     // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
-
     @Override
     public void onBackPressed() {
         if (mp != null) {
@@ -632,44 +657,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         if (notificationManager != null) notificationManager.cancelAll();
         finishAndRemoveTask();
-    }
-
-    // This two methods below has to be deleted if we want to use proximity sensor also when the app is in background
-    // But first the sensor detection has to work properly
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mSensorManager.unregisterListener(this);
-    }
-
-    // TODO: This seems to be faulty, is the event detected?
-    // This still need fixes
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
-            if (event.values[0] >= -SENSOR_SENSITIVITY && event.values[0] <= SENSOR_SENSITIVITY) {
-                // Audio near
-                Log.e("My_activity", "Audio near");
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
-            } else {
-                // Audio far
-                Log.e("My_Activity", "Audio far");
-                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
-                m_amAudioManager.setSpeakerphoneOn(true);
-            }
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 
 // END OF MAIN ACTIVITY ------------------------------------------------------------------------
