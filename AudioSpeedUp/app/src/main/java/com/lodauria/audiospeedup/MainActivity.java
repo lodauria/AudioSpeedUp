@@ -35,13 +35,15 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -49,10 +51,7 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
 
-    private SensorManager mSensorManager;
-    private Sensor mProximity;
     private static final int SENSOR_SENSITIVITY = 4;
-
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
     Database mDatabase;
@@ -60,6 +59,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     PopupMenu popup;
     Menu menuOpts;
     AlertDialog alertDialog = null;
+    CoordinatorLayout coordinatorLayout;
+    int count = 0;
+    private SensorManager mSensorManager;
+    private Sensor mProximity;
+    private AudioManager m_amAudioManager;
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
     private Button test;
     private Button help;
@@ -72,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
     private Thread mp_updater;
+
 
     // GET SPEED FACTOR ----------------------------------------------------------------------------
     // In the shared preferences is stored the speed factor to use
@@ -118,7 +123,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mp == null) {
             // This means that the file is not supported
             // TODO: On older Android version opus are not supported, can be resolved in some way?
-            Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
+            Snackbar snack = Snackbar.make(coordinatorLayout,
+                    getString(R.string.audio_not_supported), Snackbar.LENGTH_LONG);
+            SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+            snack.show();
             finishAndRemoveTask();
             // Return true to handle the error message and stop the execution
             return true;
@@ -145,8 +153,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (flag == 1) {
                 // Check if audio is mute
                 AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
-                    Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
+                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0){
+                    Snackbar snack = Snackbar.make(coordinatorLayout,
+                            getString(R.string.up_volume), Snackbar.LENGTH_SHORT);
+                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                    snack.show();
+                }
                 // Setup the player
                 mp_updater.start();
                 player.setEnabled(true);
@@ -238,7 +250,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        coordinatorLayout = findViewById(R.id.cordinatorLayout);
 
         // Setup database
         mDatabase = new Database(this);
@@ -525,8 +539,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (from_sharing) {
             // Check if audio is mute and show toast reminder
             AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
-                Toast.makeText(this, getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
+            if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0){
+                Snackbar snack = Snackbar.make(coordinatorLayout,
+                        getString(R.string.up_volume), Snackbar.LENGTH_LONG);
+                SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                snack.show();
+            }
             // Start reproduction
             mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
             mp_updater.start();
@@ -537,29 +555,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void showPopup() {
         popup.setOnMenuItemClickListener(item -> {
-            data = mDatabase.getData();
-            if (item.getItemId() == R.id.action_theme) {
-                if (data.getCount() == 0) {
-                    AddData("themevalue", "1");
-                } else
-                    while (data.moveToNext()) {
-                        if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
-                            mDatabase.deleteName("themevalue", "0");
-                            Toast.makeText(this, R.string.toast_change_theme, Toast.LENGTH_SHORT).show();
-                            AddData("themevalue", "1");
-                        } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
-                            mDatabase.deleteName("themevalue", "1");
-                            Toast.makeText(this, R.string.toast_change_theme, Toast.LENGTH_SHORT).show();
-                            AddData("themevalue", "0");
+            if (count == 0) {
+                data = mDatabase.getData();
+                if (item.getItemId() == R.id.action_theme) {
+                    if (data.getCount() == 0) {
+                        AddData("themevalue", "1");
+                    } else
+                        while (data.moveToNext()) {
+                            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
+                                mDatabase.deleteName("themevalue", "0");
+                                AddData("themevalue", "1");
+                            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
+                                mDatabase.deleteName("themevalue", "1");
+                                AddData("themevalue", "0");
+                            }
+
                         }
 
-                    }
+                    Snackbar snack = Snackbar.make(coordinatorLayout,
+                            getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
+                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                    snack.show();
+                    count++;
+                }
                 popup.dismiss();
+
             }
             return true;
 
 
         });
+
         popup.show();
     }
 
@@ -607,6 +633,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
 
     @Override
+    public void onBackPressed() {
+        if (mp != null) {
+            mp.release();
+            mp = null;
+        }
+        if (notificationManager != null) notificationManager.cancelAll();
+        finishAndRemoveTask();
+    }
+
+    // This two methods below has to be deleted if we want to use proximity sensor also when the app is in background
+    // But first the sensor detection has to work properly
+    @Override
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
@@ -618,30 +656,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this);
     }
 
-
-
-    @Override
-    public void onBackPressed() {
-        if (mp != null) {
-            mp.release();
-            mp = null;
-        }
-        if (notificationManager != null) notificationManager.cancelAll();
-        finishAndRemoveTask();
-    }
-
+    // TODO: This seems to be faulty, is the event detected?
+    // This still need fixes
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // TODO: Fix player when change proximity sensor
         if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
             if (event.values[0] >= -SENSOR_SENSITIVITY && event.values[0] <= SENSOR_SENSITIVITY) {
-                Log.e("TODO", "Audio near");
-                // pass audio through the speaker
-                //mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                // Audio near
+                Log.e("My_activity", "Audio near");
+                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                m_amAudioManager.setSpeakerphoneOn(false);
             } else {
-                Log.e("TODO", "Audio far");
-                // pass audio through the earpiece
-                //mp.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+                // Audio far
+                Log.e("My_Activity", "Audio far");
+                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
+                m_amAudioManager.setSpeakerphoneOn(true);
             }
         }
     }
@@ -650,5 +679,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+
 // END OF MAIN ACTIVITY ------------------------------------------------------------------------
 }

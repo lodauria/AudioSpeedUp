@@ -1,0 +1,17 @@
+<resources>
+    <string name="speed_1_0x">Prędkość: 2.0x</string>
+    <string name="testButton">Test</string>
+    <string name="helpButton">Pomoc</string>
+    <string name="play_pause">Play/Pausa</string>
+    <string name="restart">Reset</string>
+    <string name="donate">Dona</string>
+    <string name="up_volume">Zwiększ głośność</string>
+    <string name="speed">Prędkość: %.2fx</string>
+    <string name="title_dialog">jak korzystać:</string>
+    <string name="desc_dialog">Wybierz plik do odtworzenia za pomocą opcji udostępniania z aplikacji (na przykład WhatsApp). \n\nOSTRZEŻENIE: Niektóre formaty audio są obsługiwane tylko w najnowszych wersjach Androida.</string>
+    <string name="notification">Gra teraz</string>
+    <string name="titlespeed">Wybierz prędkość</string>
+    <string name="titletest">Testowne audio</string>
+    <string name="action_theme">Aktywuj dark mode</string>
+    <string name="action_theme_dark">Dezaktywuj dark mode</string>
+</resources>
