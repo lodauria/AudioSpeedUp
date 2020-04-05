@@ -26,6 +26,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.view.Menu;
 import android.view.View;
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float factor;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
+    private PowerManager.WakeLock wl;
     private Thread mp_updater;
 
 
@@ -197,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // ON ACTIVITY CREATION ------------------------------------------------------------------------
-    @SuppressLint("SetTextI18n")
+    @SuppressLint({"SetTextI18n", "InvalidWakeLockTag"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -242,6 +244,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         coordinatorLayout = findViewById(R.id.cordinatorLayout);
+        // TODO:
+        PowerManager pManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        if (pManager != null)
+           wl = pManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Your Tag");
 
         // Setup database
         mDatabase = new Database(this);
@@ -580,16 +586,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // PROXIMITY SENSOR CHANGE ---------------------------------------------------------------------
-    // TODO: This still need fixes
     @Override
     public void onSensorChanged(SensorEvent event) {
+
         if (event.values[0] < mProximity.getMaximumRange()) {
             // Audio near
+            m_amAudioManager.setMode(AudioManager.STREAM_MUSIC);
             m_amAudioManager.setSpeakerphoneOn(false);
+            this.setVolumeControlStream(AudioManager.STREAM_MUSIC); // Still not perfect, the volume controls doesn't act correctly
         } else {
             // Audio far
+            m_amAudioManager.setMode(0);
             m_amAudioManager.setSpeakerphoneOn(true);
+            this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
         }
+
     }
 
     @Override
@@ -597,8 +608,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-    // TODO: This two methods below has to be deleted if we want to use proximity sensor also when the app is in background
-    // but first the sensor detection has to work properly
     @Override
     protected void onResume() {
         super.onResume();
@@ -610,6 +619,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
         mSensorManager.unregisterListener(this);
     }
+
 
     // NEW INTENT RECEIVED -------------------------------------------------------------------------
     // If the app has been restarted before having been closed (from launcher or from another file)
