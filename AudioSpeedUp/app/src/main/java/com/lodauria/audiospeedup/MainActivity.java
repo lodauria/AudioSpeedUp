@@ -52,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     private static final int SENSOR_SENSITIVITY = 4;
+    private AudioManager m_amAudioManager;
+
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
     Database mDatabase;
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int count = 0;
     private SensorManager mSensorManager;
     private Sensor mProximity;
-    private AudioManager m_amAudioManager;
+
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
     private Button test;
     private Button help;
@@ -123,10 +125,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mp == null) {
             // This means that the file is not supported
             // TODO: On older Android version opus are not supported, can be resolved in some way?
-            Snackbar snack = Snackbar.make(coordinatorLayout,
-                    getString(R.string.audio_not_supported), Snackbar.LENGTH_LONG);
-            SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
-            snack.show();
+            Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
             finishAndRemoveTask();
             // Return true to handle the error message and stop the execution
             return true;
@@ -153,12 +152,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (flag == 1) {
                 // Check if audio is mute
                 AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0){
-                    Snackbar snack = Snackbar.make(coordinatorLayout,
-                            getString(R.string.up_volume), Snackbar.LENGTH_SHORT);
-                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
-                    snack.show();
-                }
+                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
+                    Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
                 // Setup the player
                 mp_updater.start();
                 player.setEnabled(true);
@@ -251,6 +246,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
+
         m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         coordinatorLayout = findViewById(R.id.cordinatorLayout);
 
@@ -539,12 +535,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (from_sharing) {
             // Check if audio is mute and show toast reminder
             AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0){
-                Snackbar snack = Snackbar.make(coordinatorLayout,
-                        getString(R.string.up_volume), Snackbar.LENGTH_LONG);
-                SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
-                snack.show();
-            }
+            if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
+                Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
             // Start reproduction
             mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
             mp_updater.start();
