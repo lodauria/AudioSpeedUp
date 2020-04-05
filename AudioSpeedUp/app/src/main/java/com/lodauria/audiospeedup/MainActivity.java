@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager mSensorManager;
     private Sensor mProximity;
     private static final int SENSOR_SENSITIVITY = 4;
+    private AudioManager m_amAudioManager;
 
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
@@ -238,7 +239,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mProximity = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        m_amAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
 
         // Setup database
         mDatabase = new Database(this);
@@ -616,6 +618,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         finishAndRemoveTask();
     }
 
+    // This two methods below has to be deleted if we want to use proximity sensor also when the app is in background
+    // But first the sensor detection has to work properly
     @Override
     protected void onResume() {
         super.onResume();
@@ -628,18 +632,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager.unregisterListener(this);
     }
 
+    // TODO: This seems to be faulty, is the event detected?
+    // This still need fixes
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // TODO: Fix player when change proximity sensor
         if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
             if (event.values[0] >= -SENSOR_SENSITIVITY && event.values[0] <= SENSOR_SENSITIVITY) {
-                Log.e("TODO", "Audio near");
-                // pass audio through the speaker
-                //mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+                // Audio near
+                Log.e("My_activity", "Audio near");
+                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                m_amAudioManager.setSpeakerphoneOn(false);
             } else {
-                Log.e("TODO", "Audio far");
-                // pass audio through the earpiece
-                //mp.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+                // Audio far
+                Log.e("My_Activity", "Audio far");
+                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
+                m_amAudioManager.setSpeakerphoneOn(true);
             }
         }
     }
