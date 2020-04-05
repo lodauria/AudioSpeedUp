@@ -633,6 +633,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // TODO: This seems to be faulty, is the event detected?
+    // This still need fixes
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
