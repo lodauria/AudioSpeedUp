@@ -15,7 +15,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.database.Cursor;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -30,26 +35,30 @@ import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-
+import com.google.android.material.snackbar.Snackbar;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
+    // GLOBAL VARIABLES ----------------------------------------------------------------------------
     public static boolean mp_play = true;
     public static boolean mp_stop = true;
-    Database mDatabase;
-    Cursor data;
-    PopupMenu popup;
-    Menu menuOpts;
-    AlertDialog alertDialog = null;
-    // GLOBAL VARIABLES ----------------------------------------------------------------------------
+    private Database mDatabase;
+    private Cursor data;
+    private PopupMenu popup;
+    private Menu menuOpts;
+    private AlertDialog alertDialog = null;
+    private CoordinatorLayout coordinatorLayout;
+    private AudioManager m_amAudioManager;
+    private SensorManager mSensorManager;
+    private Sensor mProximity;
     private Button test;
     private Button help;
     private TextView label;
@@ -57,10 +66,12 @@ public class MainActivity extends AppCompatActivity {
     private MediaPlayer mp;
     private ImageButton play_b, restart_b, stop_b;
     private int flag = 0;
+    private boolean trig = false;
     private float factor;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
     private Thread mp_updater;
+
 
     // GET SPEED FACTOR ----------------------------------------------------------------------------
     // In the shared preferences is stored the speed factor to use
@@ -107,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (mp == null) {
             // This means that the file is not supported
             // TODO: On older Android version opus are not supported, can be resolved in some way?
-            Toast.makeText(this, "Audio format not supported!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
             finishAndRemoveTask();
             // Return true to handle the error message and stop the execution
             return true;
@@ -161,14 +172,21 @@ public class MainActivity extends AppCompatActivity {
         // Define the help button with the warning message
         help.setOnClickListener(v -> {
             // Simple popup tutorial on how to use the app
+            // Check UI Mode and change theme
+            int nightModeFlags =
+                    this.getResources().getConfiguration().uiMode &
+                            Configuration.UI_MODE_NIGHT_MASK;
+            switch (nightModeFlags) {
+                case Configuration.UI_MODE_NIGHT_YES:
 
-
-            while (data.moveToNext())
-                if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
-                    alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialog).create();
-                else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                case Configuration.UI_MODE_NIGHT_UNDEFINED:
                     alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialogDark).create();
+                    break;
 
+                case Configuration.UI_MODE_NIGHT_NO:
+                    alertDialog = new AlertDialog.Builder(MainActivity.this, R.style.AlertDialog).create();
+                    break;
+            }
 
             alertDialog.setTitle(getString(R.string.title_dialog));
             alertDialog.setMessage(getString(R.string.desc_dialog));
@@ -193,10 +211,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Set saved theme
         while (data.moveToNext())
-            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
+            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
                 setTheme(R.style.AppTheme);
-            else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1"))
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
                 setTheme(R.style.DarkTheme);
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }
 
         setContentView(R.layout.activity_main);
 
@@ -216,13 +237,13 @@ public class MainActivity extends AppCompatActivity {
         popup = new PopupMenu(MainActivity.this, more);
         popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
         menuOpts = popup.getMenu();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
-        // Initial info extras and database
-        // TODO: probably redundant
-        // Call again the Database constructor is probably not needed and slows down execution
-        // This problem is here and in a lot of other places
-        // Is using the database necessary to save only a boolean?
-        // Probably shared preferences works better
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        coordinatorLayout = findViewById(R.id.cordinatorLayout);
+
+        // Setup database
         mDatabase = new Database(this);
         data = mDatabase.getData();
 
@@ -254,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
         // DONATE BUTTON ---------------------------------------------------------------------------
         donate.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp"))));
 
-        // MORE BUTTON ---------------------------------------------------------------------------
+        // MORE BUTTON -----------------------------------------------------------------------------
         more.setOnClickListener(view -> {
             while (data.moveToNext())
                 if (data.getString(1).equals("themevalue") && data.getString(2).equals("0"))
@@ -263,7 +284,6 @@ public class MainActivity extends AppCompatActivity {
                     menuOpts.getItem(0).setTitle(getString(R.string.action_theme_dark));
             showPopup();
         });
-
 
         // SPEED BAR LISTENER ----------------------------------------------------------------------
         // Listener for the speed bar (save the speed factor and change media player speed)
@@ -508,7 +528,7 @@ public class MainActivity extends AppCompatActivity {
             // Check if audio is mute and show toast reminder
             AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
-                Toast.makeText(this, getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
             // Start reproduction
             mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
             mp_updater.start();
@@ -517,37 +537,78 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // ADD TO DATABASE -----------------------------------------------------------------------------
+    public void AddData(String field, String record) {
+        mDatabase.addData(field, record);
+    }
+
+    // POPUP MENU ----------------------------------------------------------------------------------
     private void showPopup() {
         popup.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_theme) {
-                mDatabase = new Database(this);
+            if (!trig) {
                 data = mDatabase.getData();
-                if (data.getCount() == 0) {
-                    AddData("themevalue", "1");
-                } else
-                    while (data.moveToNext()) {
-                        if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
-                            mDatabase.deleteName("themevalue", "0");
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                            AddData("themevalue", "1");
-                        } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
-                            mDatabase.deleteName("themevalue", "1");
-                            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                            AddData("themevalue", "0");
+                if (item.getItemId() == R.id.action_theme) {
+                    if (data.getCount() == 0) {
+                        AddData("themevalue", "1");
+                    } else
+                        while (data.moveToNext()) {
+                            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
+                                mDatabase.deleteName("themevalue", "0");
+                                AddData("themevalue", "1");
+                            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
+                                mDatabase.deleteName("themevalue", "1");
+                                AddData("themevalue", "0");
+                            }
+
                         }
 
-                    }
-                // TODO: Change theme without restarting everything
-                // The restart stops the music and all the other processes
-                // This makes the UI uncomfortable
-                this.onRestart();
-                startActivity(new Intent(this, MainActivity.class));
+                    Snackbar snack = Snackbar.make(coordinatorLayout,
+                            getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
+                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                    snack.show();
+                    trig=true;
+                }
+                popup.dismiss();
+
             }
             return true;
 
 
         });
+
         popup.show();
+    }
+
+    // PROXIMITY SENSOR CHANGE ---------------------------------------------------------------------
+    // TODO: This still need fixes
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.values[0] < mProximity.getMaximumRange()) {
+            // Audio near
+            m_amAudioManager.setSpeakerphoneOn(false);
+        } else {
+            // Audio far
+            m_amAudioManager.setSpeakerphoneOn(true);
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    // TODO: This two methods below has to be deleted if we want to use proximity sensor also when the app is in background
+    // but first the sensor detection has to work properly
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
     }
 
     // NEW INTENT RECEIVED -------------------------------------------------------------------------
@@ -586,10 +647,6 @@ public class MainActivity extends AppCompatActivity {
         if (notificationManager != null) notificationManager.cancelAll();
     }
 
-    public void AddData(String field, String record) {
-        mDatabase.addData(field, record);
-    }
-
     // ON BACK PRESSED -----------------------------------------------------------------------------
     // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
     @Override
@@ -601,5 +658,6 @@ public class MainActivity extends AppCompatActivity {
         if (notificationManager != null) notificationManager.cancelAll();
         finishAndRemoveTask();
     }
+
 // END OF MAIN ACTIVITY ------------------------------------------------------------------------
 }
