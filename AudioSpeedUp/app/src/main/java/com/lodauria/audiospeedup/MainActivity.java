@@ -607,6 +607,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Behaviour has to be the same of destroy (this behaviour is more user friendly and intuitive)
 
     @Override
+    public void onBackPressed() {
+        if (mp != null) {
+            mp.release();
+            mp = null;
+        }
+        if (notificationManager != null) notificationManager.cancelAll();
+        finishAndRemoveTask();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         mSensorManager.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL);
@@ -616,18 +626,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(this);
-    }
-
-
-
-    @Override
-    public void onBackPressed() {
-        if (mp != null) {
-            mp.release();
-            mp = null;
-        }
-        if (notificationManager != null) notificationManager.cancelAll();
-        finishAndRemoveTask();
     }
 
     @Override
@@ -650,5 +648,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+
 // END OF MAIN ACTIVITY ------------------------------------------------------------------------
 }
