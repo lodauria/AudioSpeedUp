@@ -35,13 +35,15 @@ import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -49,8 +51,6 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
 
-    private SensorManager mSensorManager;
-    private Sensor mProximity;
     private static final int SENSOR_SENSITIVITY = 4;
     private AudioManager m_amAudioManager;
 
@@ -61,6 +61,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     PopupMenu popup;
     Menu menuOpts;
     AlertDialog alertDialog = null;
+    CoordinatorLayout coordinatorLayout;
+    int count = 0;
+    private SensorManager mSensorManager;
+    private Sensor mProximity;
+    private AudioManager m_amAudioManager;
     // GLOBAL VARIABLES ----------------------------------------------------------------------------
     private Button test;
     private Button help;
@@ -73,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
     private Thread mp_updater;
+
 
     // GET SPEED FACTOR ----------------------------------------------------------------------------
     // In the shared preferences is stored the speed factor to use
@@ -119,7 +125,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mp == null) {
             // This means that the file is not supported
             // TODO: On older Android version opus are not supported, can be resolved in some way?
-            Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
+            Snackbar snack = Snackbar.make(coordinatorLayout,
+                    getString(R.string.audio_not_supported), Snackbar.LENGTH_LONG);
+            SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+            snack.show();
             finishAndRemoveTask();
             // Return true to handle the error message and stop the execution
             return true;
@@ -146,8 +155,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (flag == 1) {
                 // Check if audio is mute
                 AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
-                    Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
+                if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0){
+                    Snackbar snack = Snackbar.make(coordinatorLayout,
+                            getString(R.string.up_volume), Snackbar.LENGTH_SHORT);
+                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                    snack.show();
+                }
                 // Setup the player
                 mp_updater.start();
                 player.setEnabled(true);
@@ -240,7 +253,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        m_amAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        coordinatorLayout = findViewById(R.id.cordinatorLayout);
 
         // Setup database
         mDatabase = new Database(this);
@@ -527,8 +542,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (from_sharing) {
             // Check if audio is mute and show toast reminder
             AudioManager am = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
-                Toast.makeText(this, getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
+            if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0){
+                Snackbar snack = Snackbar.make(coordinatorLayout,
+                        getString(R.string.up_volume), Snackbar.LENGTH_LONG);
+                SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                snack.show();
+            }
             // Start reproduction
             mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(factor));
             mp_updater.start();
@@ -539,29 +558,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private void showPopup() {
         popup.setOnMenuItemClickListener(item -> {
-            data = mDatabase.getData();
-            if (item.getItemId() == R.id.action_theme) {
-                if (data.getCount() == 0) {
-                    AddData("themevalue", "1");
-                } else
-                    while (data.moveToNext()) {
-                        if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
-                            mDatabase.deleteName("themevalue", "0");
-                            Toast.makeText(this, R.string.toast_change_theme, Toast.LENGTH_SHORT).show();
-                            AddData("themevalue", "1");
-                        } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
-                            mDatabase.deleteName("themevalue", "1");
-                            Toast.makeText(this, R.string.toast_change_theme, Toast.LENGTH_SHORT).show();
-                            AddData("themevalue", "0");
+            if (count == 0) {
+                data = mDatabase.getData();
+                if (item.getItemId() == R.id.action_theme) {
+                    if (data.getCount() == 0) {
+                        AddData("themevalue", "1");
+                    } else
+                        while (data.moveToNext()) {
+                            if (data.getString(1).equals("themevalue") && data.getString(2).equals("0")) {
+                                mDatabase.deleteName("themevalue", "0");
+                                AddData("themevalue", "1");
+                            } else if (data.getString(1).equals("themevalue") && data.getString(2).equals("1")) {
+                                mDatabase.deleteName("themevalue", "1");
+                                AddData("themevalue", "0");
+                            }
+
                         }
 
-                    }
+                    Snackbar snack = Snackbar.make(coordinatorLayout,
+                            getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
+                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                    snack.show();
+                    count++;
+                }
                 popup.dismiss();
+
             }
             return true;
 
 
         });
+
         popup.show();
     }
 
