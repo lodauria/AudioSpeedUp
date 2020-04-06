@@ -568,6 +568,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
                 popup.dismiss();
             }
+
+            if (item.getItemId() == R.id.privacy) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bonsky97.github.io/AudioSpeedUp")));
+            }
             return true;
         });
         popup.show();
@@ -579,7 +583,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (mp==null) return;
 
-        if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying()) {
+        if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying() && mp.getCurrentPosition()>1500*factor) {
             // Audio near
             int val = mp.getCurrentPosition();
             // Disable screen (touch and brightness)
@@ -595,7 +599,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             m_amAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
                     m_amAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)-4,
                     AudioManager.USE_DEFAULT_STREAM_TYPE);
-            mp.seekTo(val);
+            mp.seekTo((int) (val - 1500*factor));
 
         } else {
             // Audio far

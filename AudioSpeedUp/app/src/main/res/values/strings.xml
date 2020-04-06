@@ -18,4 +18,5 @@
     <string name="action_theme_dark">Disable dark mode</string>
     <string name="audio_not_supported">Audio format not supported!</string>
     <string name="toast_change_theme">The theme will change at the reboot</string>
+    <string name="privacy_policy" translatable="false">Privacy policy</string>
 </resources>
