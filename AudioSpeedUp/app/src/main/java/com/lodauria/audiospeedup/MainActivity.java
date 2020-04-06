@@ -26,10 +26,10 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.view.Menu;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
@@ -71,7 +71,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float factor;
     private NotificationManagerCompat notificationManager;
     private NotificationCompat.Builder notification;
-    private PowerManager.WakeLock wl;
     private Thread mp_updater;
 
 
@@ -119,7 +118,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Check if media player definition was successful
         if (mp == null) {
             // This means that the file is not supported
-            // TODO: On older Android version opus are not supported, can be resolved in some way?
+            // TODO: On older Android version opus are not supported
+            // Can be introduced using the github library https://github.com/louisyonge/opus_android
             Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
             finishAndRemoveTask();
             // Return true to handle the error message and stop the execution
@@ -241,13 +241,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
-
         m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         coordinatorLayout = findViewById(R.id.cordinatorLayout);
-        // TODO:
-        PowerManager pManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        if (pManager != null)
-           wl = pManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Your Tag");
 
         // Setup database
         mDatabase = new Database(this);
@@ -407,7 +402,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // classes, but they are static and it's a mess
         // The statics class that are called after pressing notifications buttons change the
         // public global variables mp_play and mp_stop, and this thread catches their changes
-        // TODO: can be solved without changing everything?
         Thread mp_handler = new Thread(() -> {
             while (mp != null) {
                 // If play/pause button has been pressed recently
@@ -540,7 +534,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mp_updater.start();
             play_b.setImageResource(R.drawable.pause);
         }
-
     }
 
     // ADD TO DATABASE -----------------------------------------------------------------------------
@@ -567,7 +560,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             }
 
                         }
-
                     Snackbar snack = Snackbar.make(coordinatorLayout,
                             getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
                     SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
@@ -575,13 +567,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     trig=true;
                 }
                 popup.dismiss();
-
             }
             return true;
-
-
         });
-
         popup.show();
     }
 
@@ -589,16 +577,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if (event.values[0] < mProximity.getMaximumRange()) {
+        if (mp==null) return;
+
+        if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying()) {
             // Audio near
-            m_amAudioManager.setMode(AudioManager.STREAM_MUSIC);
+            int val = mp.getCurrentPosition();
+            // Disable screen (touch and brightness)
+            WindowManager.LayoutParams params = getWindow().getAttributes();
+            params.screenBrightness = 0;
+            getWindow().setAttributes(params);
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            //Set audio output on the earpiece
+            m_amAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
             m_amAudioManager.setSpeakerphoneOn(false);
-            this.setVolumeControlStream(AudioManager.STREAM_MUSIC); // Still not perfect, the volume controls doesn't act correctly
+            m_amAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                    m_amAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)-4,
+                    AudioManager.USE_DEFAULT_STREAM_TYPE);
+            mp.seekTo(val);
+
         } else {
             // Audio far
-            m_amAudioManager.setMode(0);
+            // Enable screen (touch and brightness)
+            WindowManager.LayoutParams params = getWindow().getAttributes();
+            params.screenBrightness = -1;
+            getWindow().setAttributes(params);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            // Set audio output on the speakers
+            m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
             m_amAudioManager.setSpeakerphoneOn(true);
-            this.setVolumeControlStream(AudioManager.STREAM_MUSIC);
         }
 
     }
