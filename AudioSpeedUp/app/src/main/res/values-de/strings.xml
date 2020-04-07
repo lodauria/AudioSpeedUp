@@ -1,0 +1,20 @@
+<resources>
+    <string name="speed_1_0x">Geschwindigkeit: 2.0x</string>
+    <string name="testButton">Testen</string>
+    <string name="helpButton">Hilfe</string>
+    <string name="play_pause">Wiedergabe/Pause</string>
+    <string name="restart">Neustarten</string>
+    <string name="donate">Spenden</string>
+    <string name="speed">Geschwindigkeit: %.2fx</string>
+    <string name="stop">Stoppen</string>
+    <string name="up_volume">Erhöhen der Lautstärke</string>
+    <string name="title_dialog">Wie benutzt man:</string>
+    <string name="desc_dialog">Wählen Sie eine Datei zum Abspielen aus, indem Sie die Freigabeoption von Apps wie WhatsApp verwenden.\n\nWarnung: Einige Audioformate werden auf älteren Geräten nicht unterstützt.</string>
+    <string name="audio_not_supported">Nicht unterstütztes Audioformat!</string>
+    <string name="notification">Audio abspielen…</string>
+    <string name="titlespeed">Geschwindigkeit auswählen</string>
+    <string name="titletest">Audio-Beispiel</string>
+    <string name="action_theme">Aktivieren Sie den Dunkelmodus</string>
+    <string name="action_theme_dark">Deaktivieren Sie den Dunkelmodus</string>
+    <string name="toast_change_theme">Das Thema ändert sich beim Neustart</string>
+</resources>

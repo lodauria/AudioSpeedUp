@@ -4,7 +4,7 @@
     <string name="testButton">Test</string>
     <string name="helpButton">Help</string>
     <string name="play_pause">Play/Pause</string>
-    <string name="stop" translatable="false">Stop</string>
+    <string name="stop">Stop</string>
     <string name="restart">Restart</string>
     <string name="donate">Donate</string>
     <string name="up_volume">Turn the volume up</string>
@@ -17,6 +17,6 @@
     <string name="action_theme">Enable dark mode</string>
     <string name="action_theme_dark">Disable dark mode</string>
     <string name="audio_not_supported">Audio format not supported!</string>
-    <string name="toast_change_theme">The theme will change at the reboot</string>
+    <string name="toast_change_theme">The theme will change at restart</string>
     <string name="privacy_policy" translatable="false">Privacy policy</string>
 </resources>

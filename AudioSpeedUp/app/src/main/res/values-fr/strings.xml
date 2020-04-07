@@ -4,7 +4,7 @@
     <string name="helpButton">Aide</string>
     <string name="play_pause">Lecture/Pause</string>
     <string name="restart">Redémarre</string>
-    <string name="donate">Fait un don</string>
+    <string name="donate">Donner</string>
     <string name="up_volume">Augmentez le volume</string>
     <string name="speed">Vitesse:  %.2fx</string>
     <string name="title_dialog">Comment l\'utiliser:</string>
@@ -16,4 +16,5 @@
     <string name="action_theme_dark">Désactiver le mode sombre</string>
     <string name="audio_not_supported">Le format audio n\'est pas soutenu!</string>
     <string name="toast_change_theme">Le thème changera à la reprise</string>
+    <string name="stop">Stop</string>
 </resources>

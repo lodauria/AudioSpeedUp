@@ -43,6 +43,8 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -168,10 +170,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 stop_b.setEnabled(true);
                 play_b.setEnabled(true);
             }
-            // Easter egg after 10 tap, the audio file will change
-            if (flag == 10) {
+            // Easter egg only in italian after 10 tap, the audio file will change
+            if (flag == 10 && Locale.getDefault().getLanguage().equals(new Locale("it").getLanguage())){
                 mp.stop();
-                mp = MediaPlayer.create(getApplicationContext(), R.raw.easteregg);
+                mp = MediaPlayer.create(getApplicationContext(), R.raw.test2);
                 set_mp_listener(false);
                 mp.setLooping(false);
                 mp.setVolume(1.0f, 1.0f);

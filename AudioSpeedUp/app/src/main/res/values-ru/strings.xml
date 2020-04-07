@@ -1,0 +1,20 @@
+<resources>
+    <string name="speed_1_0x">Скорость: 2.0x</string>
+    <string name="testButton">Попробовать</string>
+    <string name="helpButton">Помощь</string>
+    <string name="play_pause">Плэй/Паузу</string>
+    <string name="stop">Стоп</string>
+    <string name="restart">Перезапустить</string>
+    <string name="donate">Пожертвовать</string>
+    <string name="speed">Скорость: %.2fx</string>
+    <string name="up_volume">Увеличьте громкость</string>
+    <string name="title_dialog">Как это работает:</string>
+    <string name="desc_dialog">Выберите файл для воспроизведения, используя параметр общего доступа к приложениям, например WhatsApp.\n\nПредупреждение: некоторые аудио форматы не поддерживаются на старых устройствах.</string>
+    <string name="audio_not_supported">Аудио формат не поддерживается!</string>
+    <string name="notification">Воспроизведение аудио…</string>
+    <string name="toast_change_theme">Тема изменится при перезагрузке</string>
+    <string name="action_theme_dark">Отключить темный режим</string>
+    <string name="action_theme">Включить темный режим</string>
+    <string name="titletest">Аудио образец</string>
+    <string name="titlespeed">Выберите скорость</string>
+</resources>
