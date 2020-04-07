@@ -112,18 +112,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
     }
 
+    // BYPASS THE ERROR ON OPUS FILES
+    private boolean bypass(Uri audio_file){
+        // Convert file and save as temporary file
+        // TODO: Convert with github library https://github.com/louisyonge/opus_android
+        // Setup mp with temporary file
+        // TODO: mp.create() on the temporary file
+        // Check if temporary file works and return
+        return mp == null;
+    }
+
     // SETUP ACTIVITY FOR SHARING OPTION -----------------------------------------------------------
     // On create only one setup will be used, here is the one if project is started from sharing
-    private boolean setup_for_sharing() {
+    private boolean setup_for_sharing(Uri audio_file) {
         // Check if media player definition was successful
         if (mp == null) {
             // This means that the file is not supported
-            // TODO: On older Android version opus are not supported
-            // Can be introduced using the github library https://github.com/louisyonge/opus_android
-            Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
-            finishAndRemoveTask();
-            // Return true to handle the error message and stop the execution
-            return true;
+            // Try to bypass
+            if (bypass(audio_file)){
+                // If bypass doesn't work
+                Toast.makeText(this, R.string.audio_not_supported, Toast.LENGTH_SHORT).show();
+                finishAndRemoveTask();
+                // Return true to handle the error message and stop the execution
+                return true;
+            }
         }
         // Everything fine, the bottom buttons are unnecessary
         test.setVisibility(View.INVISIBLE);
@@ -199,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     // ON ACTIVITY CREATION ------------------------------------------------------------------------
-    @SuppressLint({"SetTextI18n", "InvalidWakeLockTag"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -261,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Uri data = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             mp = MediaPlayer.create(getApplicationContext(), data);
             // If file can't be open stop all the other things below
-            if (setup_for_sharing()) return;
+            if (setup_for_sharing(data)) return;
         } else {
             // Setup activity for a launcher event
             setup_normal();
@@ -544,9 +555,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // POPUP MENU ----------------------------------------------------------------------------------
     private void showPopup() {
         popup.setOnMenuItemClickListener(item -> {
-            if (!trig) {
+
+            // Click on change theme
+            if (item.getItemId() == R.id.action_theme) {
                 data = mDatabase.getData();
-                if (item.getItemId() == R.id.action_theme) {
+                if (!trig) {
                     if (data.getCount() == 0) {
                         AddData("themevalue", "1");
                     } else
@@ -560,17 +573,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             }
 
                         }
-                    Snackbar snack = Snackbar.make(coordinatorLayout,
-                            getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
-                    SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
-                    snack.show();
-                    trig=true;
+                    trig = true;
                 }
+                Snackbar snack = Snackbar.make(coordinatorLayout,
+                        getString(R.string.toast_change_theme), Snackbar.LENGTH_SHORT);
+                SnackbarMaterial.configSnackbar(getApplicationContext(), snack);
+                snack.show();
                 popup.dismiss();
             }
 
+            // Click on privacy policy
             if (item.getItemId() == R.id.privacy) {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bonsky97.github.io/AudioSpeedUp")));
+                popup.dismiss();
             }
             return true;
         });
@@ -583,9 +598,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (mp==null) return;
 
-        if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying() && mp.getCurrentPosition()>1500*factor) {
+        if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying()) {
             // Audio near
             int val = mp.getCurrentPosition();
+            if (val < 200 ) return;
             // Disable screen (touch and brightness)
             WindowManager.LayoutParams params = getWindow().getAttributes();
             params.screenBrightness = 0;
@@ -599,7 +615,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             m_amAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
                     m_amAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)-4,
                     AudioManager.USE_DEFAULT_STREAM_TYPE);
-            mp.seekTo((int) (val - 1500*factor));
+            SystemClock.sleep(1500);
+            mp.seekTo(val);
 
         } else {
             // Audio far
