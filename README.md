@@ -11,7 +11,8 @@
 _**For italian users**: This project has been presented also in video on [YouTube](https://youtu.be/IKIYfGBtt2g)._
 
 ## New Features!
-
+  
+  - Opus files supported also on older Android versions
   - Proximity sensor detection
   - Better support for languages
 
@@ -36,7 +37,6 @@ Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/b
 
 ## Todos
 
- - Add support for .opus file also in older Android versions.
  - Publish on Play Store (work in progress).
 
 License
