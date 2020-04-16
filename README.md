@@ -1,7 +1,7 @@
 # AudioSpeedUp 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/bonsky97/AudioSpeedUp?style=social)
 ![GitHub Releases](https://img.shields.io/github/downloads/bonsky97/AudioSpeedUp/total?style=social)
-### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/releases/latest/download/AudioSpeedUp.apk) 
+### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/releases/latest/download/AudioSpeedUp-GitHub.apk) 
 
 
 **NOTE: Supported on Andoird 7.1 or newer**
