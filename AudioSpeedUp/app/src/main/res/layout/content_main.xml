@@ -14,14 +14,15 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:text="@string/titletest"
         android:textColor="?attr/colorTextView"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/cardView2"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         card_view:layout_constraintStart_toStartOf="parent" />
-
 
     <TextView
         android:id="@+id/textView2"
@@ -46,14 +47,14 @@
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="50dp"
         app:cardBackgroundColor="?attr/colorCard"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.6"
         app:layout_constraintStart_toStartOf="parent"
         card_view:cardCornerRadius="5dp"
         card_view:cardElevation="2dp"
-        card_view:layout_constraintBottom_toTopOf="@+id/donateButton">
+        card_view:layout_constraintBottom_toTopOf="@+id/helpButton">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -148,7 +149,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="60dp"
         app:cardBackgroundColor="?attr/colorCard"
         app:layout_constraintBottom_toTopOf="@+id/textView"
         app:layout_constraintEnd_toEndOf="parent"
@@ -158,7 +159,7 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="98dp"
             android:padding="1dp">
 
             <SeekBar
@@ -185,7 +186,7 @@
                 android:layout_above="@+id/speedBar"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:text="@string/speed_1_0x"
                 android:textColor="?attr/colorTextView"
                 android:textSize="18sp"
@@ -198,31 +199,16 @@
     </androidx.cardview.widget.CardView>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/donateButton"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/donate"
-        android:textColor="?attr/colorButton"
-        app:icon="@drawable/donate"
-        app:iconTint="?attr/colorButton"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:strokeColor="?attr/colorButton" />
-
-    <com.google.android.material.button.MaterialButton
         android:id="@+id/helpButton"
         style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
         android:backgroundTint="?attr/colorButton"
         android:text="@string/helpButton"
         android:textColor="?attr/colorBackground"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         card_view:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

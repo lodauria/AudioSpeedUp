@@ -15,4 +15,10 @@
         android:title="@string/privacy_policy"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/donate"
+        android:orderInCategory="1"
+        android:title="@string/donate"
+        app:showAsAction="never" />
+
 </menu>

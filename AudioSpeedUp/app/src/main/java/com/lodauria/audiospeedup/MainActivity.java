@@ -43,10 +43,15 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import com.google.android.material.snackbar.Snackbar;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import top.oply.opuslib.OpusTool;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
@@ -116,10 +121,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     // BYPASS THE ERROR ON OPUS FILES
     private boolean bypass(Uri audio_file){
-        // Convert file and save as temporary file
-        // TODO: Convert with github library https://github.com/louisyonge/opus_android
-        // Setup mp with temporary file
-        // TODO: mp.create() on the temporary file
+        // Create temporary files
+        File outputDir = this.getCacheDir();
+        File opusFile;
+        File wavFile;
+        try {
+            // Create local opus file
+            opusFile = File.createTempFile("temp_opus", ".opus", outputDir);
+            InputStream in =  getContentResolver().openInputStream(audio_file);
+            OutputStream out = new FileOutputStream(opusFile);
+            byte[] buf = new byte[1024];
+            int len;
+            assert in != null;
+            while((len=in.read(buf))>0){
+                out.write(buf,0,len);
+            }
+            out.close();
+            in.close();
+            // Create local wav empty file
+            wavFile = File.createTempFile("temp_wav", ".wav", outputDir);
+
+            // Convert opus file in wav file
+            OpusTool oTool = new OpusTool();
+            oTool.decode(opusFile.getPath(), wavFile.getPath(), null);
+
+        } catch (IOException e) {
+            return true;
+        }
+
+        // Setup mp with wav temporary file
+        mp = MediaPlayer.create(this, Uri.parse(wavFile.getPath()));
+
         // Check if temporary file works and return
         return mp == null;
     }
@@ -164,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
                     Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
                 // Setup the player
+                mp = MediaPlayer.create(this, R.raw.test);
                 mp_updater.start();
                 player.setEnabled(true);
                 restart_b.setEnabled(true);
@@ -240,7 +273,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Button more = toolbar.findViewById(R.id.more);
-        Button donate = findViewById(R.id.donateButton);
         test = findViewById(R.id.testButton);
         help = findViewById(R.id.helpButton);
         play_b = findViewById(R.id.playButton);
@@ -285,9 +317,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mp.setVolume(1.0f, 1.0f);
         speed.setProgress((int) ((factor - 0.5) * 4.0));
         label.setText(String.format(getString(R.string.speed), factor));
-
-        // DONATE BUTTON ---------------------------------------------------------------------------
-        donate.setOnClickListener(v -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp"))));
 
         // MORE BUTTON -----------------------------------------------------------------------------
         more.setOnClickListener(view -> {
@@ -417,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // public global variables mp_play and mp_stop, and this thread catches their changes
         Thread mp_handler = new Thread(() -> {
             while (mp != null) {
-                // If play/pause button has been pressed recently
+                // If play/pause notification button has been pressed recently
                 if (!mp_play) {
                     mp_play = true;
                     try {
@@ -433,11 +462,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         if (mp == null) return;
                     }
                 }
-                // If stop button has been pressed recently
+                // If stop notification button has been pressed recently
                 if (!mp_stop) {
                     mp_stop = true;
                     try {
-                        // Same of the stop button
                         if (from_sharing && !hasWindowFocus()) {
                             mp.release();
                             mp = null;
@@ -472,20 +500,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // STOP BUTTON -----------------------------------------------------------------------------
         stop_b.setOnClickListener(v -> {
-            // Close the activity if we are from a file sharing
-            if (from_sharing && !hasWindowFocus()) {
-                mp.release();
-                mp = null;
-                notificationManager.cancelAll();
-                finishAndRemoveTask();
-            } else {
-                // Simply restore activity layout otherwise
-                mp.pause();
-                notificationManager.cancelAll();
-                mp.seekTo(0);
-                player.setProgress(0);
-                play_b.setImageResource(R.drawable.play);
-            }
+            // Close the media player
+            mp.stop();
+            notificationManager.cancelAll();
+            player.setProgress(0);
+            play_b.setImageResource(R.drawable.play_gray);
+            player.setEnabled(false);
+            restart_b.setEnabled(false);
+            stop_b.setEnabled(false);
+            play_b.setEnabled(false);
+            flag=0;
+            mp.release();
+            mp = null;
         });
 
         // PLAY-PAUSE BUTTON -----------------------------------------------------------------------
@@ -589,6 +615,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bonsky97.github.io/AudioSpeedUp")));
                 popup.dismiss();
             }
+
+            // Click on donate
+            if (item.getItemId() == R.id.donate) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://paypal.me/AudioSpeedUp")));
+                popup.dismiss();
+            }
+
             return true;
         });
         popup.show();
@@ -602,8 +635,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying()) {
             // Audio near
-            int val = mp.getCurrentPosition();
-            if (val < 200 ) return;
+            if (mp.getCurrentPosition() < 200 ) return;
+            mp.pause();
             // Disable screen (touch and brightness)
             WindowManager.LayoutParams params = getWindow().getAttributes();
             params.screenBrightness = 0;
@@ -618,7 +651,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     m_amAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)-4,
                     AudioManager.USE_DEFAULT_STREAM_TYPE);
             SystemClock.sleep(1500);
-            mp.seekTo(val);
+            mp.start();
 
         } else {
             // Audio far
@@ -687,6 +720,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         // Clear notifications
         if (notificationManager != null) notificationManager.cancelAll();
+
+        // Delete cache files
+        File cacheDir = this.getCacheDir();
+        File[] files = cacheDir.listFiles();
+        if (files != null) {
+            for (File file : files)
+                if(!file.delete()) break;
+        }
     }
 
     // ON BACK PRESSED -----------------------------------------------------------------------------
