@@ -1,7 +1,7 @@
 # AudioSpeedUp 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/bonsky97/AudioSpeedUp?style=social)
 ![GitHub Releases](https://img.shields.io/github/downloads/bonsky97/AudioSpeedUp/total?style=social)
-### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/releases/latest/download/AudioSpeedUp.apk) 
+### [**Download now!**](https://github.com/bonsky97/AudioSpeedUp/releases/latest/download/AudioSpeedUp-GitHub.apk) 
 
 
 **NOTE: Supported on Andoird 7.1 or newer**
@@ -11,7 +11,8 @@
 _**For italian users**: This project has been presented also in video on [YouTube](https://youtu.be/IKIYfGBtt2g)._
 
 ## New Features!
-
+  
+  - Opus files supported also on older Android versions
   - Proximity sensor detection
   - Better support for languages
 
@@ -36,7 +37,6 @@ Want to contribute? Great! See [here](https://github.com/bonsky97/AudioSpeedUp/b
 
 ## Todos
 
- - Add support for .opus file also in older Android versions.
  - Publish on Play Store (work in progress).
 
 License
