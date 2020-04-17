@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
                 // Setup the player
                 mp = MediaPlayer.create(this, R.raw.test);
-                mp_updater.start();
+                if (!mp_updater.isAlive()) mp_updater.start();
                 player.setEnabled(true);
                 restart_b.setEnabled(true);
                 stop_b.setEnabled(true);
@@ -467,17 +467,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     mp_stop = true;
                     try {
                         if (from_sharing && !hasWindowFocus()) {
+                            // Close app
                             mp.release();
                             mp = null;
                             notificationManager.cancelAll();
                             finishAndRemoveTask();
                             return;
                         } else {
-                            mp.pause();
+                            // Close the media player
+                            mp.stop();
                             notificationManager.cancelAll();
-                            mp.seekTo(0);
                             player.setProgress(0);
-                            play_b.setImageResource(R.drawable.play);
+                            play_b.setImageResource(R.drawable.play_gray);
+                            player.setEnabled(false);
+                            restart_b.setEnabled(false);
+                            stop_b.setEnabled(false);
+                            play_b.setEnabled(false);
+                            flag=0;
+                            if (from_sharing) {
+                                mp.release();
+                                mp = null;
+                            }
                         }
                     } catch (Exception e) {
                         // Same as above
@@ -510,8 +520,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             stop_b.setEnabled(false);
             play_b.setEnabled(false);
             flag=0;
-            mp.release();
-            mp = null;
+            if (from_sharing) {
+                mp.release();
+                mp = null;
+            }
         });
 
         // PLAY-PAUSE BUTTON -----------------------------------------------------------------------
