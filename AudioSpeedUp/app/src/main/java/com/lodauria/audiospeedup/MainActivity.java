@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Menu menuOpts;
     private AlertDialog alertDialog = null;
     private CoordinatorLayout coordinatorLayout;
-    private AudioManager m_amAudioManager;
     private SensorManager mSensorManager;
     private Sensor mProximity;
     private Button test;
@@ -174,6 +173,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Everything fine, the bottom buttons are unnecessary
         test.setVisibility(View.INVISIBLE);
         help.setVisibility(View.INVISIBLE);
+
+        // Change text above the player bar
+        TextView label_p = findViewById(R.id.textView);
+        label_p.setVisibility(View.INVISIBLE);
         return false;
     }
 
@@ -196,7 +199,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if (Objects.requireNonNull(am).getStreamVolume(AudioManager.STREAM_MUSIC) == 0)
                     Toast.makeText(getApplicationContext(), getString(R.string.up_volume), Toast.LENGTH_SHORT).show();
                 // Setup the player
-                mp = MediaPlayer.create(this, R.raw.test);
                 if (!mp_updater.isAlive()) mp_updater.start();
                 player.setEnabled(true);
                 restart_b.setEnabled(true);
@@ -286,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         menuOpts = popup.getMenu();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mProximity = Objects.requireNonNull(mSensorManager).getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         coordinatorLayout = findViewById(R.id.cordinatorLayout);
 
         // Setup database
@@ -475,9 +476,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             return;
                         } else {
                             // Close the media player
-                            mp.stop();
-                            notificationManager.cancelAll();
+                            mp.pause();
+                            mp.seekTo(0);
                             player.setProgress(0);
+                            notificationManager.cancelAll();
                             play_b.setImageResource(R.drawable.play_gray);
                             player.setEnabled(false);
                             restart_b.setEnabled(false);
@@ -511,9 +513,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // STOP BUTTON -----------------------------------------------------------------------------
         stop_b.setOnClickListener(v -> {
             // Close the media player
-            mp.stop();
-            notificationManager.cancelAll();
+            mp.pause();
+            mp.seekTo(0);
             player.setProgress(0);
+            notificationManager.cancelAll();
             play_b.setImageResource(R.drawable.play_gray);
             player.setEnabled(false);
             restart_b.setEnabled(false);
@@ -644,6 +647,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
 
         if (mp==null) return;
+        AudioManager m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (m_amAudioManager==null) return;
 
         if (event.values[0] < mProximity.getMaximumRange() && mp.isPlaying()) {
             // Audio near
