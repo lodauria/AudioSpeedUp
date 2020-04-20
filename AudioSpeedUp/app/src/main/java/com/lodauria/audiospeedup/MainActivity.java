@@ -459,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             play_b.setImageResource(R.drawable.pause);
                         }
                     } catch (Exception e) {
-                        // For some reason it often throws exceptions, but not the one we are interested in
+                        // Ignore exception of layout hierarchy
                         if (mp == null) return;
                     }
                 }
@@ -480,11 +480,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                             mp.seekTo(0);
                             player.setProgress(0);
                             notificationManager.cancelAll();
-                            play_b.setImageResource(R.drawable.play_gray);
-                            player.setEnabled(false);
-                            restart_b.setEnabled(false);
-                            stop_b.setEnabled(false);
-                            play_b.setEnabled(false);
+                            runOnUiThread(() -> {
+                                play_b.setImageResource(R.drawable.play_gray);
+                                player.setEnabled(false);
+                                restart_b.setEnabled(false);
+                                stop_b.setEnabled(false);
+                                play_b.setEnabled(false);
+                            });
                             flag=0;
                             if (from_sharing) {
                                 mp.release();
