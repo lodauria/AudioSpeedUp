@@ -4,9 +4,9 @@
 
 
 
-<a href='https://play.google.com/store/apps/details?id=com.lodauria.audiospeedup&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="110"></a> ***!! Now hidden from PlayStore !!***
+<p><a href='https://play.google.com/store/apps/details?id=com.lodauria.audiospeedup&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="110"></a> <b><i> !! Now hidden from PlayStore !!</i></b></p
 
-**![GitHub release (latest by date)](https://img.shields.io/github/v/release/bonsky97/AudioSpeedUp?style=social)![GitHub Releases](https://img.shields.io/github/downloads/bonsky97/AudioSpeedUp/total?style=social)**
+**![GitHub release (latest by date)](https://img.shields.io/github/v/release/bonsky97/AudioSpeedUp?style=social)	 ![GitHub Releases](https://img.shields.io/github/downloads/bonsky97/AudioSpeedUp/total?style=social)**
 
 ### [**Direct Download**](https://github.com/bonsky97/AudioSpeedUp/releases/latest/download/AudioSpeedUp-GitHub.apk)
 **NOTE: Supported on Andoird 7.1 or newer**
