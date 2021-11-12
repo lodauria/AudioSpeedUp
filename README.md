@@ -4,8 +4,10 @@
 
 
 
-<p><a href='https://play.google.com/store/apps/details?id=com.lodauria.audiospeedup&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="110"></a></p
+<p><a href='https://play.google.com/store/apps/details?id=com.lodauria.audiospeedup&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="110"></a></p>
+
 ***!! Now hidden from PlayStore !!***
+
 
 **![GitHub release (latest by date)](https://img.shields.io/github/v/release/bonsky97/AudioSpeedUp?style=social)	 ![GitHub Releases](https://img.shields.io/github/downloads/bonsky97/AudioSpeedUp/total?style=social)**
 
