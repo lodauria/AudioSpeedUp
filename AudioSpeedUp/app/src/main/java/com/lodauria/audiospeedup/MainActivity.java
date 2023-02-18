@@ -629,7 +629,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             // Click on privacy policy
             if (item.getItemId() == R.id.privacy) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bonsky97.github.io/AudioSpeedUp")));
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://lodauria.github.io/AudioSpeedUp/privacy_policy.html")));
                 popup.dismiss();
             }
 
